@@ -1,5 +1,8 @@
 -- Run once in the SQL editor of your Supabase project.
 -- This table is independent of the original Cloudflare D1 workspace.
+-- payload is a JSON document. Older single-platform Poland workspaces stay valid;
+-- the application upgrades them before validation. Do not add a required column
+-- that existing rows cannot fill.
 create table if not exists public.winglex_workspaces (
   owner_id uuid not null references auth.users(id) on delete cascade,
   brand_id text not null check (brand_id = 'winglex'),

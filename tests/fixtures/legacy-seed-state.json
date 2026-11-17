@@ -1,0 +1,452 @@
+{
+  "campaign": {
+    "brandId": "winglex",
+    "brand": "Winglex",
+    "website": "https://winglex.com",
+    "name": "Poland · Creator pilot",
+    "target": "Polish-speaking travellers with disrupted flights",
+    "brief": "Reach travellers with a relevant flight disruption. Help them complete a flight check and submit an eligible passenger claim.",
+    "objective": "claims",
+    "budget": 10000,
+    "fee": 400,
+    "winRate": 70,
+    "winCost": 60,
+    "lossCost": 20,
+    "ctr": 0.7,
+    "completion": 40,
+    "eligibility": 30,
+    "signing": 65,
+    "low": 0.5,
+    "high": 1.5,
+    "weights": {
+      "audience": 40,
+      "content": 40,
+      "action": 20
+    }
+  },
+  "creators": [
+    {
+      "id": "@holiday.stop",
+      "name": "Amelia & Albin",
+      "handle": "@holiday.stop",
+      "platform": "TikTok",
+      "followers": 85300,
+      "median": 10488,
+      "engagement": 4.16,
+      "country": "not supplied",
+      "age": "82.8%",
+      "notes": "STATS: 1.8M post views 28d (-2.1%), 58.4K likes, 1K comments (+58.9%), 14.6K shares, 9.6K profile views. 822.1k total viewers (+10.9%), 233.1k new (+181.5%). 30d: 624,137 views, +939 followers, 46% from followers. Reels 445k / Stories 177k. Age 25-34 34.8%, 35-44 23.4%, 45-54 18.4%, 55+ 6.2% = 82.8% over 25 - oldest of any respondent. Followers 76% F. Top content: Albania and cheap city breaks from Poland. 9h delay returning from Egypt - ready-made story. Students under 26 so umowa zlecenie is tax-free. Declined free flight check. Strong affiliate track record, emphasise natural integration over polish. Stats attached in reply.",
+      "source": "Winglex Creator Tracker - Poland.csv · supplied September 2026",
+      "status": "Replied",
+      "story": "Yes",
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": 2000,
+          "basis": "brutto",
+          "views": 10488
+        },
+        {
+          "name": "TikTok +promo",
+          "fee": 2500,
+          "basis": "brutto",
+          "views": null
+        },
+        {
+          "name": "IG Reels",
+          "fee": 1900,
+          "basis": "brutto",
+          "views": null
+        },
+        {
+          "name": "IG Reels +promo",
+          "fee": 2300,
+          "basis": "brutto",
+          "views": null
+        },
+        {
+          "name": "IGS set",
+          "fee": 1000,
+          "basis": "brutto",
+          "views": null
+        },
+        {
+          "name": "Bundle offer",
+          "fee": 3000,
+          "basis": "brutto",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "First pilot candidate: personal nine-hour Egypt flight-delay story and relevant travel content. Eligibility of the story is unverified.",
+      "gaps": "Polish audience share missing. Confirm the PLN 3,000 bundle scope and comparable sponsored reach. Reconcile platform and reporting windows.",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@podroze_za_grosze",
+      "name": "Karolina Sienkiewicz",
+      "handle": "@podroze_za_grosze",
+      "platform": "TikTok",
+      "followers": 65000,
+      "median": 10889,
+      "engagement": 2.68,
+      "country": "Poland 99.3%",
+      "age": "76.1%",
+      "notes": "Replied 30 Aug, interested, no competitor work. Full IG stats supplied: 29,308 views 30d (54.3% followers), 92.8k post views 28d but -64.6% vs prior period, 1.8k likes, 45 comments, 527 shares. Audience 99.3% Poland - best geo concentration of any respondent. Age 25-34 38.6%, 35-44 19.2%, 45-54 14.3%. Did not volunteer own disruption story - ask.",
+      "source": "Winglex Creator Tracker - Poland.csv · supplied September 2026",
+      "status": "Replied",
+      "story": "Not stated",
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": 3000,
+          "basis": "netto",
+          "views": 10889
+        },
+        {
+          "name": "TikTok +promo",
+          "fee": 5500,
+          "basis": "netto",
+          "views": null
+        },
+        {
+          "name": "IG Reels",
+          "fee": 1000,
+          "basis": "netto",
+          "views": null
+        },
+        {
+          "name": "IG Reels +promo",
+          "fee": 2000,
+          "basis": "netto",
+          "views": null
+        },
+        {
+          "name": "IGS set",
+          "fee": 600,
+          "basis": "netto",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "Strong reported Polish audience concentration. Explore Instagram pricing; negotiate TikTok using comparable results.",
+      "gaps": "29,308 views are labelled TikTok in the stats column but Instagram in the notes. Request per-format organic reach and link clicks. Personal story not supplied.",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@travelovcy",
+      "name": "Zuzia & Maks",
+      "handle": "@travelovcy",
+      "platform": "TikTok",
+      "followers": 100056,
+      "median": 25471,
+      "engagement": 3.49,
+      "country": "IG Poland 91% / TT Poland 99.3%",
+      "age": "IG 91.3% / TT 73.2%",
+      "notes": "STATS: TikTok 1.7M post views 28d (+200.4%), 17K likes, 210 comments, 4K shares, 82.6% from For You. IG audience 91% Poland, 76.2% F, age 35-44 31.6% / 25-34 29.2% / 45-54 22.5% = 91.3% over 25. TikTok 99.3% Poland, 62% F, 25-34 29.6% / 18-24 26.8% = 73.2% over 25. Stories 4.1-28.3k views per frame. Note: one Story frame in their own deck is tagged @ergo_ubezpieczenia_podroz. Quoted without answering interest/story/competitor questions. ERGO travel insurance is a running deal (code TRAVELOVCY15) - closest category conflict. Volvo ambassadorship started 25 Aug, may limit Sept slots. Sponsored posts appear boosted: MG Motor 1.16M views at 0.10% ER. Ask for organic-only reach.",
+      "source": "Winglex Creator Tracker - Poland.csv · supplied September 2026",
+      "status": "Replied",
+      "story": "Not stated",
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": 8000,
+          "basis": "netto",
+          "views": 25471
+        },
+        {
+          "name": "TikTok +promo",
+          "fee": 9000,
+          "basis": "netto",
+          "views": null
+        },
+        {
+          "name": "IG Reels",
+          "fee": 10000,
+          "basis": "netto",
+          "views": null
+        },
+        {
+          "name": "IG Reels +promo",
+          "fee": 11000,
+          "basis": "netto",
+          "views": null
+        },
+        {
+          "name": "IGS set",
+          "fee": 4000,
+          "basis": "netto",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "Relevant reported audience, but the current quote needs stronger evidence of acquisition performance.",
+      "gaps": "Request organic sponsored-post results. Check ERGO category restrictions. Paid amplification is suspected in the source notes, not verified.",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@kajetaneo",
+      "name": "Kajetano",
+      "handle": "@kajetaneo",
+      "platform": "TikTok",
+      "followers": 71200,
+      "median": 11317,
+      "engagement": 3.13,
+      "country": "",
+      "age": "",
+      "notes": "Top topical fit - posts Wizzair disruption content unprompted (73.2k views, 130 comments).",
+      "source": "Winglex Creator Tracker - Poland.csv · supplied September 2026",
+      "status": "Sent",
+      "story": "",
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": 11317
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "Priority follow-up: the tracker describes unsolicited Wizz Air disruption content, directly relevant to Winglex.",
+      "gaps": "No quote or audience analytics supplied. Verify the referenced content and request a comparable package.",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@dalekojeszczetravel",
+      "name": "Daleko Jeszcze?",
+      "handle": "@dalekojeszczetravel",
+      "platform": "TikTok",
+      "followers": 163100,
+      "median": 212130,
+      "engagement": 6.4,
+      "country": "",
+      "age": "",
+      "notes": "Best reach efficiency (1,300 views/1k). Honest hotel reviews - consumer-rights voice.",
+      "source": "Winglex Creator Tracker - Poland.csv · supplied September 2026",
+      "status": "Sent",
+      "story": "",
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": 212130
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "High historical median and a consumer-rights angle make this a useful follow-up.",
+      "gaps": "No quote supplied. Validate the 212,130 median against recent comparable organic posts and request Polish audience data.",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@letsfly_pl",
+      "name": "Mateusz - Pilot",
+      "handle": "@letsfly_pl",
+      "platform": "TikTok",
+      "followers": 86200,
+      "median": 74262,
+      "engagement": 3.45,
+      "country": "",
+      "age": "",
+      "notes": "Working airline pilot. Oldest audience (60% over 25). Posts ~1x/month.",
+      "source": "Winglex Creator Tracker - Poland.csv · supplied September 2026",
+      "status": "Sent",
+      "story": "",
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": 74262
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "Pilot expertise could support educational content.",
+      "gaps": "No quote supplied. Confirm availability, audience geography and any employer restrictions.",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@swiatnaczterystopy",
+      "name": "Adam",
+      "handle": "@swiatnaczterystopy",
+      "platform": "TikTok",
+      "followers": 54700,
+      "median": 13321,
+      "engagement": 3.71,
+      "country": "",
+      "age": "",
+      "notes": "72% audience over 25, second oldest. CSV listed gender as female - corrected to male.",
+      "source": "Winglex Creator Tracker - Poland.csv · supplied September 2026",
+      "status": "Sent",
+      "story": "",
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": 13321
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "Travel audience merits review; acquisition advantage is not yet established.",
+      "gaps": "No quote or comparable sponsored outcomes supplied.",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@owsianapl",
+      "name": "Justyna Świetlicka",
+      "handle": "@owsianapl",
+      "platform": "TikTok",
+      "followers": 71400,
+      "median": 31818,
+      "engagement": 11.61,
+      "country": "",
+      "age": "",
+      "notes": "Highest engagement on the list. Prior AXA travel insurance + PayPo work.",
+      "source": "Winglex Creator Tracker - Poland.csv · supplied September 2026",
+      "status": "Sent",
+      "story": "",
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": 31818
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "High listed engagement warrants investigation of audience and content relevance.",
+      "gaps": "No quote supplied. Engagement does not establish flight-claim acquisition potential.",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    }
+  ],
+  "snapshots": []
+}

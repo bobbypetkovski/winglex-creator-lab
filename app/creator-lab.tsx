@@ -99,8 +99,8 @@ function HandleLink({ platform, handle, url }: { platform: string; handle: strin
   if (!handle || !href) return null;
   return <a className="handle-link" href={href} target="_blank" rel="noreferrer">{handle}</a>;
 }
-function marketLabel(market: string) {
-  return market === 'North Macedonia' ? 'N. Macedonia' : market;
+function marketLabel(market: string, compact = false) {
+  return compact && market === 'North Macedonia' ? 'N. Macedonia' : market;
 }
 function audienceHint(profile: Profile | undefined, field: 'home' | 'age' | 'gender') {
   if (!profile) return '';
@@ -222,6 +222,7 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
   const [pendingRestore, setPendingRestore] = useState<State | null>(null);
   const backupRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const tablePanelRef = useRef<HTMLElement>(null);
   const outcomeRef = useRef<HTMLInputElement>(null);
   const c = state.campaign;
   const selected = state.creators.filter(x => x.included);
@@ -375,6 +376,24 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
     return (Number(av) - Number(bv)) * direction;
   }) : filtered;
   const hiddenShortlist = selected.filter(x => marketFilter !== 'all' && x.market !== marketFilter).length;
+  useEffect(() => {
+    const scroller = tablePanelRef.current?.querySelector<HTMLElement>('[data-slot=table-container]');
+    if (!scroller) return;
+    const update = () => {
+      scroller.classList.toggle('shade-left', scroller.scrollLeft > 2);
+      scroller.classList.toggle('shade-right', scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 2);
+    };
+    update();
+    scroller.addEventListener('scroll', update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(scroller);
+    window.addEventListener('resize', update);
+    return () => {
+      scroller.removeEventListener('scroll', update);
+      observer.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, [platformView, marketFilter, rows.length, tab]);
   const viewPlatforms: PlatformName[] = platformView === 'Both' ? [...PLATFORMS] : [platformView];
   const metrics = platformView === 'Both' ? BOTH_METRICS : METRICS;
   const pendingUpdates = pending?.filter(x => state.creators.some(y => y.handle.toLowerCase() === x.handle.toLowerCase())).length ?? 0;
@@ -392,7 +411,7 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
         <div className="campaign-strip"><div className="campaign-title"><span className="campaign-icon"><Target size={21} /></span><div><strong>{header.name}</strong><span>{header.target}</span></div></div><div className="strip-fields"><div><span className="tiny-label">OBJECTIVE</span><Choice label="Campaign objective" value={c.objective} options={[['claims', 'Signed claims'], ['awareness', 'Awareness'], ['content', 'Content assets']]} onChange={v => { campaign('objective', v as Campaign['objective']); campaign('weights', v === 'claims' ? { audience: 40, content: 40, action: 20 } : v === 'awareness' ? { audience: 65, content: 25, action: 10 } : { audience: 20, content: 70, action: 10 }); }} /></div><Numeric label="Campaign budget" value={c.budget} suffix="PLN" onChange={v => campaign('budget', v ?? 0)} /></div></div>
         <div className="stats-grid"><div className="stat"><span>Creators in review</span><strong>{state.creators.length.toString().padStart(2, '0')}</strong><small>{state.creators.filter(x => x.packages.some(p => p.fee != null)).length} with a quoted package</small></div><div className="stat"><span>Shortlisted spend</span><strong>{money(spend)}</strong><small className={spend > c.budget ? 'negative' : ''}>{missingCost ? 'Incomplete · missing quotes' : `${money(Math.max(0, c.budget - spend))} remaining`}</small></div><div className="stat"><span>{c.objective === 'claims' ? 'Expected signed passengers' : 'Estimated placement views'}</span><strong>{!selected.length ? '—' : c.objective === 'claims' ? (complete ? n(signed, 1) : 'Incomplete') : missingReach ? 'Incomplete' : n(forecasts.reduce((s, f) => s + (f.views ?? 0), 0))}</strong><small>Illustrative · {viewScenario === 'base' ? 'base' : viewScenario} assumptions</small></div><div className="stat accent-stat"><span>{c.objective === 'claims' ? 'Expected campaign profit' : 'Shortlisted creators'}</span><strong className={complete && contribution - spend < 0 ? 'negative' : ''}>{c.objective === 'claims' ? (complete ? money(contribution - spend) : '—') : selected.length}</strong><small>{c.objective === 'claims' ? 'After campaign and handling costs' : 'Compare evidence before committing'}</small></div></div>
         <Tabs value={tab} onValueChange={setTab} className="main-tabs"><TabsList variant="line" className="main-tab-list"><TabsTrigger value="creators"><Users />Creators <span className="tab-count">{state.creators.length}</span></TabsTrigger><TabsTrigger value="campaign"><SlidersHorizontal />Campaign & assumptions</TabsTrigger><TabsTrigger value="roi"><ChartNoAxesCombined />ROI simulator</TabsTrigger><TabsTrigger value="outcomes"><ClipboardCheck />Actual results</TabsTrigger></TabsList>
-          <TabsContent value="creators"><div className="content-grid"><section className="panel creator-panel"><div className="panel-header"><div><h2>Creator shortlist</h2><p>Compare TikTok and Instagram, then choose who to model.</p></div><button type="button" className="btn" onClick={() => fileRef.current?.click()}><Upload size={16} />Import CSV</button></div><input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={e => void readFile(e.target.files?.[0], 'creators')} /><div className="table-controls"><div className="search-box"><Search size={17} /><input aria-label="Search creators" placeholder="Find a creator…" value={query} onChange={e => setQuery(e.target.value)} /></div><div className="control-row"><div className="segmented" role="group" aria-label="Market">{([['all', 'All'], ...MARKETS.map(market => [market, marketLabel(market)] as [string, string])]).map(([value, label]) => <button type="button" key={value} className={marketFilter === value ? 'on' : ''} aria-pressed={marketFilter === value} title={value === 'all' ? 'All markets' : value} onClick={() => setMarketFilter(value as MarketFilter)}>{label}</button>)}</div><Choice label="Filter creators" value={filter} onChange={setFilter} options={[['all', 'All creators'], ['quoted', 'With quotes'], ['shortlist', 'Shortlisted']]} /><div className="segmented" role="group" aria-label="Platform">{(['TikTok', 'Instagram', 'Both'] as const).map(item => <button type="button" key={item} className={platformView === item ? 'on' : ''} aria-pressed={platformView === item} onClick={() => setPlatformView(item)}>{item}</button>)}</div></div></div>
+          <TabsContent value="creators"><div className="content-grid"><section className="panel creator-panel" ref={tablePanelRef}><div className="panel-header"><div><h2>Creator shortlist</h2><p>Compare TikTok and Instagram, then choose who to model.</p></div><button type="button" className="btn" onClick={() => fileRef.current?.click()}><Upload size={16} />Import CSV</button></div><input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={e => void readFile(e.target.files?.[0], 'creators')} /><div className="table-controls"><div className="search-box"><Search size={17} /><input aria-label="Search creators" placeholder="Find a creator…" value={query} onChange={e => setQuery(e.target.value)} /></div><div className="control-row"><div className="segmented" role="group" aria-label="Market">{([['all', 'All'], ...MARKETS.map(market => [market, marketLabel(market, true)] as [string, string])]).map(([value, label]) => <button type="button" key={value} className={marketFilter === value ? 'on' : ''} aria-pressed={marketFilter === value} title={value === 'all' ? 'All markets' : value} onClick={() => setMarketFilter(value as MarketFilter)}>{label}</button>)}</div><Choice label="Filter creators" value={filter} onChange={setFilter} options={[['all', 'All creators'], ['quoted', 'With quotes'], ['shortlist', 'Shortlisted']]} /><div className="segmented" role="group" aria-label="Platform">{(['TikTok', 'Instagram', 'Both'] as const).map(item => <button type="button" key={item} className={platformView === item ? 'on' : ''} aria-pressed={platformView === item} onClick={() => setPlatformView(item)}>{item}</button>)}</div></div></div>
             <Table className={`creator-table${platformView === 'Both' ? ' both' : ''}`}><TableHeader><TableRow>
               <TableHead className="sticky-creator"><span className="sr-only">Shortlist and creator</span></TableHead>
               <SortHead label="Market" sortKey="market" active={sort?.key === 'market'} dir={sort?.dir ?? 'asc'} onSort={onSort} />
@@ -406,8 +425,8 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
               const instagram = x.profiles.find(item => item.platform === 'Instagram');
               const credibility = instagram?.detail.credibility;
               return <Fragment key={x.id}><TableRow className={x.included ? 'selected-row' : ''} data-market={x.market} data-stronger={stronger ?? 'none'}>
-                <TableCell className="sticky-creator"><div className="creator-identity"><Checkbox aria-label={`Shortlist ${x.name}`} checked={x.included} onCheckedChange={v => creator(x.id, { included: v === true })} /><div className="creator-copy"><button type="button" className="creator-name" title={x.name} onClick={() => setDetail(x.id)}><CreatorFace creator={x} tone={i % 4} /><strong>{x.name}</strong>{credibility != null && <span className={`cred-pill ${credibility < 70 ? 'bad' : credibility < 85 ? 'warn' : 'ok'}`} title={`Instagram audience credibility ${n(credibility, 1)}% from the API. This is not a demographic.`}>{n(credibility, 0)}</span>}</button><span className="handle-row">{viewPlatforms.map(platform => { const profile = x.profiles.find(item => item.platform === platform); const handle = profile?.handle || (x.platform === platform ? x.handle : ''); return handle ? <HandleLink key={platform} platform={platform} handle={handle} url={profile?.url ?? ''} /> : null; })}</span>{x.status && <small className="cell-note" title={x.status}>{x.status}</small>}</div></div></TableCell>
-                <TableCell className="market-cell" title={`Market: ${x.market}`}><span className={`market-pill market-${x.market === 'North Macedonia' ? 'mk' : x.market.toLowerCase()}`}>{marketLabel(x.market)}</span></TableCell>
+                <TableCell className="sticky-creator"><div className="creator-identity"><Checkbox aria-label={`Shortlist ${x.name}`} checked={x.included} onCheckedChange={v => creator(x.id, { included: v === true })} /><div className="creator-copy"><button type="button" className="creator-name" title={x.name} onClick={() => setDetail(x.id)}><CreatorFace creator={x} tone={i % 4} /><strong>{x.name}</strong>{credibility != null && <span className={`cred-pill ${credibility < 70 ? 'bad' : credibility < 85 ? 'warn' : 'ok'}`} title={`Instagram audience credibility ${n(credibility, 1)}% from the API. This is not a demographic.`}>{n(credibility, 0)}</span>}</button><span className="handle-row">{viewPlatforms.map(platform => { const profile = x.profiles.find(item => item.platform === platform); const handle = profile?.handle || (x.platform === platform ? x.handle : ''); return handle ? <HandleLink key={platform} platform={platform} handle={handle} url={profile?.url ?? ''} /> : null; })}</span><small className="cell-note" title={x.status}>{x.status || '\u00a0'}</small></div></div></TableCell>
+                <TableCell className="market-cell" title={`Market: ${x.market}`}><span className={`market-pill market-${x.market === 'North Macedonia' ? 'mk' : x.market.toLowerCase()}`}>{x.market}</span></TableCell>
                 {viewPlatforms.flatMap(platform => metrics.map(metric => <MetricCell key={`${x.id}-${platform}-${metric.key}`} creator={x} platform={platform} field={metric.key} compact={platformView === 'Both'} win={platformView === 'Both' && stronger === platform} />))}
                 <TableCell className="num"><span className="fit-number">{n(fitScore(x, c))}</span></TableCell>
                 <TableCell><span className={`pill ${d === 'Conditional test' ? 'green' : d === 'Negotiate' ? 'amber' : 'neutral'}`} title={d}>{d}</span></TableCell>

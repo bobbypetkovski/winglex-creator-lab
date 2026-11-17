@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { importCreators, mergeCreators, profileUrl, safeHttpUrl, quoteMetrics, strongerPlatform } from '../lib/model.ts';
+import { importCreators, mergeCreators, profileUrl, safeHttpUrl, quoteMetrics, strongerPlatform, StateSchema, defaultCampaign } from '../lib/model.ts';
 import { shortlistCsv } from '../lib/shortlist-csv.ts';
 
 const creators = importCreators(shortlistCsv, 'shortlist_summary.csv · 2026-11-17');
@@ -15,6 +15,20 @@ const platform = (handle: string, name: 'TikTok' | 'Instagram') => {
   assert.ok(profile, `${handle} ${name}`);
   return { creator, profile };
 };
+
+test('seed and imported markets survive a second validation', () => {
+  const state = StateSchema.parse({ campaign: defaultCampaign, creators, snapshots: [] });
+  assert.deepEqual(state.creators.map(item => item.market), creators.map(item => item.market));
+  const again = StateSchema.parse(JSON.parse(JSON.stringify(state)));
+  assert.equal(again.creators.filter(item => item.market === 'Serbia').length, 7);
+  assert.equal(again.creators.filter(item => item.market === 'North Macedonia').length, 7);
+  const legacySerbia = StateSchema.parse({
+    campaign: defaultCampaign,
+    snapshots: [],
+    creators: [{ ...JSON.parse(JSON.stringify(creators[0])), market: undefined, country: 'Serbia', profiles: undefined, platform: 'TikTok', followers: 10, median: 20, engagement: 1 }],
+  });
+  assert.equal(legacySerbia.creators[0].market, 'Serbia');
+});
 
 test('shortlist CSV imports 22 creators across three markets', () => {
   assert.equal(creators.length, 22);

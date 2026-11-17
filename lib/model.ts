@@ -658,11 +658,19 @@ function creatorShell(c: Record<string, unknown>, packages: Package[], notes: st
   };
 }
 
+function marketFromRecord(record: Record<string, unknown>): Market {
+  const explicit = String(record.market ?? '').trim();
+  if (isMarket(explicit)) return explicit;
+  const country = String(record.country ?? '').trim();
+  if (isMarket(country)) return country;
+  return 'Poland';
+}
+
 function upgradeCreator(raw: unknown): Creator {
   const c = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
   const packages = Array.isArray(c.packages) && c.packages.length ? c.packages.map(normalisePackage) : [normalisePackage({ name: 'TikTok', fee: null, basis: 'unknown', views: null })];
   if (Array.isArray(c.profiles) && c.profiles.length) {
-    const market = isMarket(String(c.market ?? '')) ? String(c.market) as Market : 'Poland';
+    const market = marketFromRecord(c);
     const platform = canonicalPlatform(String(c.platform ?? '')) ?? text(c.platform || 'TikTok', 40);
     return { ...creatorShell(c, packages, text(c.notes)), market, platform, profiles: orderProfiles(c.profiles.map(normaliseProfile)) };
   }
@@ -696,7 +704,7 @@ function upgradeCreator(raw: unknown): Creator {
   ].filter(line => line && !notes.includes(line));
   return {
     ...creatorShell(c, packages, [notes, ...extra].filter(Boolean).join('\n')),
-    market: 'Poland',
+    market: marketFromRecord(c),
     platform,
     profiles,
   };
@@ -883,7 +891,7 @@ function importShortlist(rows: string[][], headers: string[], source: string): C
     if (!handle) return null;
     if (seen.has(handle.toLowerCase())) throw new Error('Duplicate creator: ' + handle);
     seen.add(handle.toLowerCase());
-    const market = get('country');
+    const market = get('country').replace(/\s+/g, ' ').trim();
     if (!isMarket(market)) throw new Error('Unknown market for ' + handle + ': ' + (market || 'blank'));
     const platform = canonicalPlatform(get('platform'));
     if (!platform) throw new Error('Unknown platform for ' + handle + ': ' + get('platform'));

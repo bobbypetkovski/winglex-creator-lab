@@ -1,5 +1,5 @@
 'use client';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import Link from 'next/link';
 import { Users, SlidersHorizontal, ChartNoAxesCombined, ArrowUpRight, Upload, Download, Save, Check, Search, Plus, Info, CircleAlert, ChevronRight, ChevronDown, Target, History, ClipboardCheck, BadgeCheck } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -101,6 +101,72 @@ function HandleLink({ platform, handle, url }: { platform: string; handle: strin
 }
 function marketLabel(market: string, compact = false) {
   return compact && market === 'North Macedonia' ? 'N. Macedonia' : market;
+}
+const CREATOR_COL_KEY = 'winglex.creatorColumnWidth';
+const CREATOR_COL_MIN = 56;
+function readCreatorColumnWidth() {
+  try {
+    const raw = localStorage.getItem(CREATOR_COL_KEY);
+    if (raw == null || raw === '') return null;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+function ColumnResize({ width, natural, onWidth }: { width: number | null; natural: number; onWidth: (next: number | null) => void }) {
+  const drag = useRef<{ pointer: number; start: number; frame: number; latest: number } | null>(null);
+  function clamp(value: number) {
+    const max = Math.max(CREATOR_COL_MIN, natural || value);
+    return Math.round(Math.min(max, Math.max(CREATOR_COL_MIN, value)));
+  }
+  function commit(next: number | null) {
+    onWidth(next);
+    try {
+      if (next == null) localStorage.removeItem(CREATOR_COL_KEY);
+      else localStorage.setItem(CREATOR_COL_KEY, String(next));
+    } catch { /* preference only */ }
+  }
+  function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (event.button !== 0) return;
+    event.stopPropagation();
+    const handle = event.currentTarget;
+    handle.setPointerCapture(event.pointerId);
+    const start = width ?? natural;
+    drag.current = { pointer: event.clientX, start, frame: 0, latest: start };
+    handle.closest('.creator-table')?.classList.add('is-resizing');
+    const move = (ev: PointerEvent) => {
+      const current = drag.current;
+      if (!current) return;
+      current.latest = clamp(current.start + ev.clientX - current.pointer);
+      cancelAnimationFrame(current.frame);
+      current.frame = requestAnimationFrame(() => {
+        handle.closest<HTMLElement>('.creator-panel')?.style.setProperty('--creator-col', `${current.latest}px`);
+      });
+    };
+    const end = (ev: PointerEvent) => {
+      const current = drag.current;
+      handle.removeEventListener('pointermove', move);
+      handle.removeEventListener('pointerup', end);
+      handle.removeEventListener('pointercancel', end);
+      if (handle.hasPointerCapture(ev.pointerId)) handle.releasePointerCapture(ev.pointerId);
+      handle.closest('.creator-table')?.classList.remove('is-resizing');
+      if (!current) return;
+      cancelAnimationFrame(current.frame);
+      drag.current = null;
+      if (Math.abs(current.latest - current.start) > 1) commit(current.latest);
+    };
+    handle.addEventListener('pointermove', move);
+    handle.addEventListener('pointerup', end);
+    handle.addEventListener('pointercancel', end);
+  }
+  function onKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    commit(clamp((width ?? natural) + (event.key === 'ArrowRight' ? 16 : -16)));
+  }
+  const shown = Math.round(width ?? natural ?? CREATOR_COL_MIN);
+  return <div className="col-resize" role="separator" aria-orientation="vertical" aria-label="Resize creator column" aria-valuemin={CREATOR_COL_MIN} aria-valuemax={Math.round(natural || shown)} aria-valuenow={shown} tabIndex={0} onPointerDown={onPointerDown} onDoubleClick={() => commit(null)} onKeyDown={onKeyDown} />;
 }
 function audienceHint(profile: Profile | undefined, field: 'home' | 'age' | 'gender') {
   if (!profile) return '';
@@ -223,6 +289,8 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
   const backupRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const tablePanelRef = useRef<HTMLElement>(null);
+  const [creatorWidth, setCreatorWidth] = useState<number | null>(null);
+  const [creatorNatural, setCreatorNatural] = useState(0);
   const outcomeRef = useRef<HTMLInputElement>(null);
   const c = state.campaign;
   const selected = state.creators.filter(x => x.included);
@@ -394,6 +462,19 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
       window.removeEventListener('resize', update);
     };
   }, [platformView, marketFilter, rows.length, tab]);
+  useLayoutEffect(() => {
+    const panel = tablePanelRef.current;
+    const table = panel?.querySelector<HTMLElement>('.creator-table');
+    if (!panel || !table) return;
+    let content = 0;
+    table.querySelectorAll<HTMLElement>('.creator-natural').forEach(node => { content = Math.max(content, node.scrollWidth); });
+    const natural = Math.max(CREATOR_COL_MIN, content + 28);
+    const stored = readCreatorColumnWidth();
+    const next = stored == null ? natural : Math.min(natural, Math.max(CREATOR_COL_MIN, stored));
+    setCreatorNatural(natural);
+    setCreatorWidth(current => current === next ? current : next);
+    panel.style.setProperty('--creator-table-h', `${table.offsetHeight}px`);
+  }, [platformView, rows.length, tab]);
   const viewPlatforms: PlatformName[] = platformView === 'Both' ? [...PLATFORMS] : [platformView];
   const metrics = platformView === 'Both' ? BOTH_METRICS : METRICS;
   const pendingUpdates = pending?.filter(x => state.creators.some(y => y.handle.toLowerCase() === x.handle.toLowerCase())).length ?? 0;
@@ -411,9 +492,9 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
         <div className="campaign-strip"><div className="campaign-title"><span className="campaign-icon"><Target size={21} /></span><div><strong>{header.name}</strong><span>{header.target}</span></div></div><div className="strip-fields"><div><span className="tiny-label">OBJECTIVE</span><Choice label="Campaign objective" value={c.objective} options={[['claims', 'Signed claims'], ['awareness', 'Awareness'], ['content', 'Content assets']]} onChange={v => { campaign('objective', v as Campaign['objective']); campaign('weights', v === 'claims' ? { audience: 40, content: 40, action: 20 } : v === 'awareness' ? { audience: 65, content: 25, action: 10 } : { audience: 20, content: 70, action: 10 }); }} /></div><Numeric label="Campaign budget" value={c.budget} suffix="PLN" onChange={v => campaign('budget', v ?? 0)} /></div></div>
         <div className="stats-grid"><div className="stat"><span>Creators in review</span><strong>{state.creators.length.toString().padStart(2, '0')}</strong><small>{state.creators.filter(x => x.packages.some(p => p.fee != null)).length} with a quoted package</small></div><div className="stat"><span>Shortlisted spend</span><strong>{money(spend)}</strong><small className={spend > c.budget ? 'negative' : ''}>{missingCost ? 'Incomplete · missing quotes' : `${money(Math.max(0, c.budget - spend))} remaining`}</small></div><div className="stat"><span>{c.objective === 'claims' ? 'Expected signed passengers' : 'Estimated placement views'}</span><strong>{!selected.length ? '—' : c.objective === 'claims' ? (complete ? n(signed, 1) : 'Incomplete') : missingReach ? 'Incomplete' : n(forecasts.reduce((s, f) => s + (f.views ?? 0), 0))}</strong><small>Illustrative · {viewScenario === 'base' ? 'base' : viewScenario} assumptions</small></div><div className="stat accent-stat"><span>{c.objective === 'claims' ? 'Expected campaign profit' : 'Shortlisted creators'}</span><strong className={complete && contribution - spend < 0 ? 'negative' : ''}>{c.objective === 'claims' ? (complete ? money(contribution - spend) : '—') : selected.length}</strong><small>{c.objective === 'claims' ? 'After campaign and handling costs' : 'Compare evidence before committing'}</small></div></div>
         <Tabs value={tab} onValueChange={setTab} className="main-tabs"><TabsList variant="line" className="main-tab-list"><TabsTrigger value="creators"><Users />Creators <span className="tab-count">{state.creators.length}</span></TabsTrigger><TabsTrigger value="campaign"><SlidersHorizontal />Campaign & assumptions</TabsTrigger><TabsTrigger value="roi"><ChartNoAxesCombined />ROI simulator</TabsTrigger><TabsTrigger value="outcomes"><ClipboardCheck />Actual results</TabsTrigger></TabsList>
-          <TabsContent value="creators"><div className="content-grid"><section className="panel creator-panel" ref={tablePanelRef}><div className="panel-header"><div><h2>Creator shortlist</h2><p>Compare TikTok and Instagram, then choose who to model.</p></div><button type="button" className="btn" onClick={() => fileRef.current?.click()}><Upload size={16} />Import CSV</button></div><input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={e => void readFile(e.target.files?.[0], 'creators')} /><div className="table-controls"><div className="search-box"><Search size={17} /><input aria-label="Search creators" placeholder="Find a creator…" value={query} onChange={e => setQuery(e.target.value)} /></div><div className="control-row"><div className="segmented" role="group" aria-label="Market">{([['all', 'All'], ...MARKETS.map(market => [market, marketLabel(market, true)] as [string, string])]).map(([value, label]) => <button type="button" key={value} className={marketFilter === value ? 'on' : ''} aria-pressed={marketFilter === value} title={value === 'all' ? 'All markets' : value} onClick={() => setMarketFilter(value as MarketFilter)}>{label}</button>)}</div><Choice label="Filter creators" value={filter} onChange={setFilter} options={[['all', 'All creators'], ['quoted', 'With quotes'], ['shortlist', 'Shortlisted']]} /><div className="segmented" role="group" aria-label="Platform">{(['TikTok', 'Instagram', 'Both'] as const).map(item => <button type="button" key={item} className={platformView === item ? 'on' : ''} aria-pressed={platformView === item} onClick={() => setPlatformView(item)}>{item}</button>)}</div></div></div>
+          <TabsContent value="creators"><div className="content-grid"><section className="panel creator-panel" ref={tablePanelRef} style={{ ['--creator-col' as string]: creatorWidth == null ? 'max-content' : `${creatorWidth}px` }}><div className="panel-header"><div><h2>Creator shortlist</h2><p>Compare TikTok and Instagram, then choose who to model.</p></div><button type="button" className="btn" onClick={() => fileRef.current?.click()}><Upload size={16} />Import CSV</button></div><input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={e => void readFile(e.target.files?.[0], 'creators')} /><div className="table-controls"><div className="search-box"><Search size={17} /><input aria-label="Search creators" placeholder="Find a creator…" value={query} onChange={e => setQuery(e.target.value)} /></div><div className="control-row"><div className="segmented" role="group" aria-label="Market">{([['all', 'All'], ...MARKETS.map(market => [market, marketLabel(market, true)] as [string, string])]).map(([value, label]) => <button type="button" key={value} className={marketFilter === value ? 'on' : ''} aria-pressed={marketFilter === value} title={value === 'all' ? 'All markets' : value} onClick={() => setMarketFilter(value as MarketFilter)}>{label}</button>)}</div><Choice label="Filter creators" value={filter} onChange={setFilter} options={[['all', 'All creators'], ['quoted', 'With quotes'], ['shortlist', 'Shortlisted']]} /><div className="segmented" role="group" aria-label="Platform">{(['TikTok', 'Instagram', 'Both'] as const).map(item => <button type="button" key={item} className={platformView === item ? 'on' : ''} aria-pressed={platformView === item} onClick={() => setPlatformView(item)}>{item}</button>)}</div></div></div>
             <Table className={`creator-table${platformView === 'Both' ? ' both' : ''}`}><TableHeader><TableRow>
-              <TableHead className="sticky-creator"><span className="sr-only">Shortlist and creator</span></TableHead>
+              <TableHead className="sticky-creator"><span className="sr-only">Shortlist and creator</span><ColumnResize width={creatorWidth} natural={creatorNatural} onWidth={setCreatorWidth} /></TableHead>
               <SortHead label="Market" sortKey="market" active={sort?.key === 'market'} dir={sort?.dir ?? 'asc'} onSort={onSort} />
               {viewPlatforms.flatMap(platform => metrics.map(metric => <SortHead key={`${platform}.${metric.key}`} className={`${metric.numeric ? 'num ' : ''}${platform === 'TikTok' ? 'group-tt' : 'group-ig'}`} label={platformView === 'Both' ? `${platform === 'TikTok' ? 'TT' : 'IG'} ${metric.label}` : metric.label} title={metric.title} sortKey={`${platform}.${metric.key}`} active={sort?.key === `${platform}.${metric.key}`} dir={sort?.dir ?? 'desc'} onSort={onSort} />))}
               <SortHead className="num" label="Fit" sortKey="fit" active={sort?.key === 'fit'} dir={sort?.dir ?? 'desc'} onSort={onSort} title="Fit score out of 100" />
@@ -425,7 +506,7 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
               const instagram = x.profiles.find(item => item.platform === 'Instagram');
               const credibility = instagram?.detail.credibility;
               return <Fragment key={x.id}><TableRow className={x.included ? 'selected-row' : ''} data-market={x.market} data-stronger={stronger ?? 'none'}>
-                <TableCell className="sticky-creator"><div className="creator-identity"><Checkbox aria-label={`Shortlist ${x.name}`} checked={x.included} onCheckedChange={v => creator(x.id, { included: v === true })} /><div className="creator-copy"><button type="button" className="creator-name" title={x.name} onClick={() => setDetail(x.id)}><CreatorFace creator={x} tone={i % 4} /><strong>{x.name}</strong>{credibility != null && <span className={`cred-pill ${credibility < 70 ? 'bad' : credibility < 85 ? 'warn' : 'ok'}`} title={`Instagram audience credibility ${n(credibility, 1)}% from the API. This is not a demographic.`}>{n(credibility, 0)}</span>}</button><span className="handle-row">{viewPlatforms.map(platform => { const profile = x.profiles.find(item => item.platform === platform); const handle = profile?.handle || (x.platform === platform ? x.handle : ''); return handle ? <HandleLink key={platform} platform={platform} handle={handle} url={profile?.url ?? ''} /> : null; })}</span><small className="cell-note" title={x.status}>{x.status || '\u00a0'}</small></div></div></TableCell>
+                <TableCell className="sticky-creator"><div className="creator-clip"><div className="creator-natural"><div className="creator-identity"><Checkbox aria-label={`Shortlist ${x.name}`} checked={x.included} onCheckedChange={v => creator(x.id, { included: v === true })} /><div className="creator-copy"><button type="button" className="creator-name" title={x.name} onClick={() => setDetail(x.id)}><CreatorFace creator={x} tone={i % 4} /><strong>{x.name}</strong>{credibility != null && <span className={`cred-pill ${credibility < 70 ? 'bad' : credibility < 85 ? 'warn' : 'ok'}`} title={`Instagram audience credibility ${n(credibility, 1)}% from the API. This is not a demographic.`}>{n(credibility, 0)}</span>}</button><span className="handle-row">{viewPlatforms.map(platform => { const profile = x.profiles.find(item => item.platform === platform); const handle = profile?.handle || (x.platform === platform ? x.handle : ''); return handle ? <HandleLink key={platform} platform={platform} handle={handle} url={profile?.url ?? ''} /> : null; })}</span><small className="cell-note" title={x.status}>{x.status || '\u00a0'}</small></div></div></div></div></TableCell>
                 <TableCell className="market-cell" title={`Market: ${x.market}`}><span className={`market-pill market-${x.market === 'North Macedonia' ? 'mk' : x.market.toLowerCase()}`}>{x.market}</span></TableCell>
                 {viewPlatforms.flatMap(platform => metrics.map(metric => <MetricCell key={`${x.id}-${platform}-${metric.key}`} creator={x} platform={platform} field={metric.key} compact={platformView === 'Both'} win={platformView === 'Both' && stronger === platform} />))}
                 <TableCell className="num"><span className="fit-number">{n(fitScore(x, c))}</span></TableCell>

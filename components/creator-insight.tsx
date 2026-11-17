@@ -30,7 +30,7 @@ function PlatformPanel({ creator, platform }: { creator: Creator; platform: Plat
   const profile: Profile | undefined = creator.profiles.find(item => item.platform === platform);
   const href = profile ? safeHttpUrl(profileUrl(platform, profile.handle, profile.url)) : '';
   if (!profile || profile.detail.usable === false) {
-    return <section className="platform-insight"><h3>{platform}</h3><p className="muted" title="No usable account">No usable account</p></section>;
+    return <section className="platform-insight"><h3>{platform}</h3><p className="muted" title="No usable account">No usable account</p>{profile?.detail.location && <p>Creator location: {profile.detail.location}</p>}</section>;
   }
   const detail = profile.detail;
   const audience = profile.audience;
@@ -45,6 +45,7 @@ function PlatformPanel({ creator, platform }: { creator: Creator; platform: Plat
   ].filter(Boolean).join(', ');
   return <section className="platform-insight">
     <h3>{platform} {profile.handle && href ? <a href={href} target="_blank" rel="noreferrer">{profile.handle} <ArrowUpRight size={13} /></a> : profile.handle}</h3>
+    {detail.location && <p>Creator location: {detail.location}</p>}
     {detail.medianNote && <p className="muted">{detail.medianNote}</p>}
     <div className="mini-heading">Audience <SourceTag source={detail.homeSource || detail.ageSource || detail.genderSource} /></div>
     <div className="audience-figure"><span>{creator.market} share</span><strong>{percent(audience.homeShare)}</strong><SourceTag source={detail.homeSource} /><ConflictMark value={audience.homeShare} api={detail.apiHome} label="Home share" /></div>

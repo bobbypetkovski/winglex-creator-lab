@@ -1,0 +1,998 @@
+{
+  "campaign": {
+    "brandId": "winglex",
+    "brand": "Winglex",
+    "website": "https://winglex.com",
+    "name": "Poland · Creator pilot",
+    "target": "Polish-speaking travellers with disrupted flights",
+    "brief": "Reach travellers with a relevant flight disruption. Help them complete a flight check and submit an eligible passenger claim.",
+    "objective": "claims",
+    "budget": 10000,
+    "fee": 400,
+    "winRate": 70,
+    "winCost": 60,
+    "lossCost": 20,
+    "ctr": 0.7,
+    "completion": 40,
+    "eligibility": 30,
+    "signing": 65,
+    "low": 0.5,
+    "high": 1.5,
+    "weights": {
+      "audience": 40,
+      "content": 40,
+      "action": 20
+    }
+  },
+  "snapshots": [],
+  "creators": [
+    {
+      "id": "@_evce_",
+      "name": "Eva Jovanovska",
+      "handle": "@_evce_",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "North Macedonia 93.7%; Germany 1.3%; ...",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@1covek",
+      "name": "Antonio Tashkovski",
+      "handle": "@1covek",
+      "platform": "Instagram",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "North Macedonia",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "Instagram",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@adventure.mk",
+      "name": "Ana & Mane",
+      "handle": "@adventure.mk",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "North Macedonia 74.8% (IC)",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@dalekojeszczetravel",
+      "name": "Daleko Jeszcze",
+      "handle": "@dalekojeszczetravel",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Poland 92.9% (IC)",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@dva_ranca_beg_iz_kanca",
+      "name": "Ivana i Goran Babić",
+      "handle": "@dva_ranca_beg_iz_kanca",
+      "platform": "Instagram",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Serbia",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "Instagram",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@emmvvandera",
+      "name": "Em Blažeska",
+      "handle": "@emmvvandera",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "North Macedonia 63.1%; Germany 8%",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@gdemevodis",
+      "name": "Jelena (Gde me vodiš)",
+      "handle": "@gdemevodis",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Serbia 52.1% (IC)",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@gospodinsaizuzetnogputa",
+      "name": "Marko Stefanović",
+      "handle": "@gospodinsaizuzetnogputa",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Serbia 55.9%; ...",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@holiday.stop",
+      "name": "Holiday Stop",
+      "handle": "@holiday.stop",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Poland 93.5%; ...",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@hristinapan",
+      "name": "Hristina Pan",
+      "handle": "@hristinapan",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "North Macedonia",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@kajetaneo",
+      "name": "Kajetan Pilachowski",
+      "handle": "@kajetaneo",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Poland 92.0% (IC)",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@krzheska",
+      "name": "Stefanija Kržeska",
+      "handle": "@krzheska",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "North Macedonia 72.9% (IC)",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@letsfly_pl",
+      "name": "Mateusz - Pilot",
+      "handle": "@letsfly_pl",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@lutajuci_putnik",
+      "name": "Boris Radošević",
+      "handle": "@lutajuci_putnik",
+      "platform": "Instagram",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Serbia 65.5%; ...",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "Instagram",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@owsianapl",
+      "name": "Justyna Świetlicka",
+      "handle": "@owsianapl",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Poland 91.6% (IC)",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@paunovicema",
+      "name": "Ema Paunović",
+      "handle": "@paunovicema",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Serbia 54.2% (IC)",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@podroze_za_grosze",
+      "name": "Podróże Za Grosze (Karolina Sienkiewicz)",
+      "handle": "@podroze_za_grosze",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Poland 99.3%; ...",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@suzana.zbiljic",
+      "name": "Suzana Zbiljić",
+      "handle": "@suzana.zbiljic",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Serbia 61.3% (IC)",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@swiatnaczterystopy",
+      "name": "Świat na Cztery Stopy",
+      "handle": "@swiatnaczterystopy",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Poland 86.1% (IC)",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@tragom_horizonta",
+      "name": "Tragom Horizonta",
+      "handle": "@tragom_horizonta",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Serbia 70.6%; Other 18.6%; North Macedonia 5.5%; ...",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@travelovcy",
+      "name": "Travelovcy",
+      "handle": "@travelovcy",
+      "platform": "TikTok",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "Poland 91%; ...",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "TikTok",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    },
+    {
+      "id": "@whisper.ves",
+      "name": "Vesna Kocevska",
+      "handle": "@whisper.ves",
+      "platform": "Instagram",
+      "followers": null,
+      "median": null,
+      "engagement": null,
+      "country": "North Macedonia",
+      "age": "",
+      "notes": "",
+      "source": "live revision 4",
+      "status": "",
+      "story": "",
+      "market": null,
+      "packages": [
+        {
+          "name": "Instagram",
+          "fee": null,
+          "basis": "unknown",
+          "views": null
+        }
+      ],
+      "selected": 0,
+      "included": false,
+      "fit": {
+        "audience": null,
+        "content": null,
+        "action": null
+      },
+      "rationale": "",
+      "gaps": "",
+      "adjustment": 0,
+      "extraCost": 0,
+      "viewsOverride": null,
+      "actual": {
+        "spend": null,
+        "visits": null,
+        "signed": null,
+        "recovered": null,
+        "revenue": null,
+        "handling": null
+      }
+    }
+  ]
+}

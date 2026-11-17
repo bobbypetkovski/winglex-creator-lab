@@ -1,6 +1,6 @@
 import 'server-only';
 import { seedCreatorRecords } from './catalog.ts';
-import { CreatorSchema, defaultCampaign, profileFromCatalog, type State } from './model';
+import { ALL_MARKETS_HEADER, CreatorSchema, defaultCampaign, profileFromCatalog, type State } from './model';
 
 const editorial: Record<string, { rationale: string; story?: string }> = {
   '@holiday.stop': {
@@ -46,8 +46,8 @@ export function initialState(): State {
   return {
     campaign: {
       ...defaultCampaign,
-      name: 'Three markets · Creator pilot',
-      target: 'Polish-, Serbian- and Macedonian-speaking travellers with disrupted flights',
+      name: ALL_MARKETS_HEADER.name,
+      target: ALL_MARKETS_HEADER.target,
     },
     creators,
     snapshots: [],

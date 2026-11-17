@@ -97,6 +97,7 @@ a.btn{text-decoration:none}
 .cred-pill.bad{background:#fde8e4;color:#9c382c}
 .cred-pill.warn{background:#f8efd8;color:#8a5a24}
 .cred-pill.ok{background:#e5f4ef;color:#146f64}
+.creator-locations p,.platform-insight>p:first-of-type{font-size:13px;color:#5c6b7a}
 .creator-table tbody tr.insight-row td{height:auto;max-height:none;overflow:visible;text-align:left;background:#f7faf8;white-space:normal}
 .insight-panel{padding:8px 4px 12px}
 .insight-platforms{display:grid;grid-template-columns:1fr 1fr;gap:18px}

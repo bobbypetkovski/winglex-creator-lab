@@ -338,6 +338,29 @@ export function isMarket(value: string): value is Market {
   return (MARKETS as readonly string[]).includes(value);
 }
 
+const MARKET_PREFIXES = ['North Macedonia', 'Serbia', 'Poland'] as const;
+
+/** A legacy country cell: an exact market, a string that starts with one, or one named in the first entry. */
+export function marketFromCountryText(value: string): Market | null {
+  const text = value.replace(/\s+/g, ' ').trim();
+  if (!text || /^missing$/i.test(text)) return null;
+  if (isMarket(text)) return text;
+  const lower = text.toLowerCase();
+  for (const market of MARKET_PREFIXES) {
+    if (lower.startsWith(market.toLowerCase())) return market;
+  }
+  const top = (text.split(/[;\n]/)[0] ?? '').toLowerCase();
+  for (const market of MARKET_PREFIXES) {
+    if (top.includes(market.toLowerCase())) return market;
+  }
+  return null;
+}
+
+export const ALL_MARKETS_HEADER = {
+  name: 'Poland · Serbia · North Macedonia',
+  target: 'Polish-, Serbian- and Macedonian-speaking travellers with disrupted flights',
+};
+
 export function profileUrl(platform: string, handle: string, explicit = ''): string {
   const given = explicit.trim();
   if (given) return given;
@@ -808,16 +831,14 @@ function resolveMarket(record: Record<string, unknown>, handles: string[]) {
     const found = marketForHandle(handle);
     if (found) return { market: found, explicit: false };
   }
-  const country = String(record.country ?? '').trim();
-  if (isMarket(country)) return { market: country, explicit: false };
+  const fromCountry = marketFromCountryText(String(record.country ?? ''));
+  if (fromCountry) return { market: fromCountry, explicit: false };
   return { market: 'Poland' as Market, explicit: false };
 }
 
-function overlayCatalog(creator: Creator, explicitMarket: boolean): Creator {
+function overlayCatalog(creator: Creator): Creator {
   const record = findEnriched(creator.handle) ?? creator.profiles.map(profile => findEnriched(profile.handle)).find(Boolean) ?? null;
   if (!record) return creator;
-  const catalogMarket = String(record.market ?? '');
-  if (!explicitMarket && isMarket(catalogMarket)) creator.market = catalogMarket;
   const catalogEmail = typeof record.contact_email === 'string' ? record.contact_email : '';
   if (!creator.contactEmail && catalogEmail) creator.contactEmail = text(catalogEmail, 200);
   const platforms = record.platforms && typeof record.platforms === 'object' ? record.platforms as Record<string, unknown> : {};
@@ -852,7 +873,7 @@ function upgradeCreator(raw: unknown): Creator {
     const profiles = orderProfiles(c.profiles.map(normaliseProfile));
     const resolved = resolveMarket(c, [text(c.handle), ...profiles.map(profile => profile.handle)]);
     const platform = canonicalPlatform(String(c.platform ?? '')) ?? text(c.platform || 'TikTok', 40);
-    return overlayCatalog({ ...creatorShell(c, packages, text(c.notes)), market: resolved.market, platform, profiles }, resolved.explicit);
+    return overlayCatalog({ ...creatorShell(c, packages, text(c.notes)), market: resolved.market, platform, profiles });
   }
   const platform = canonicalPlatform(String(c.platform ?? 'TikTok')) ?? 'TikTok';
   const profiles = orderProfiles([]);
@@ -888,7 +909,7 @@ function upgradeCreator(raw: unknown): Creator {
     market: resolved.market,
     platform,
     profiles,
-  }, resolved.explicit);
+  });
 }
 
 function upgradeCampaign(raw: unknown): Campaign {
@@ -913,8 +934,15 @@ function upgradeCampaign(raw: unknown): Campaign {
       brief: text(c.brief || markets.Poland.brief),
     };
   }
-  const base = { ...defaultCampaign, ...c, markets };
-  return base as Campaign;
+  const base = { ...defaultCampaign, ...c, markets } as Campaign;
+  const hadMarkets = !!(saved && typeof saved === 'object');
+  if (!hadMarkets) {
+    const savedName = text(c.name).trim();
+    const savedTarget = text(c.target).trim();
+    if (!savedName || savedName === 'Poland · Creator pilot' || savedName === 'Three markets · Creator pilot') base.name = ALL_MARKETS_HEADER.name;
+    if (!savedTarget || savedTarget === 'Polish-speaking travellers with disrupted flights') base.target = ALL_MARKETS_HEADER.target;
+  }
+  return base;
 }
 
 function upgradeSnapshot(raw: unknown) {

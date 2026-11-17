@@ -104,6 +104,20 @@ export function findEnriched(handle: string): Raw | null {
   return index.get(norm(handle)) ?? null;
 }
 
+const HANDLE_ALIASES: [string, string][] = [
+  ['kajetano', 'kajetaneo'],
+  ['evce', '_evce_'],
+  ['evajovanovska', '_evce_'],
+  ['podroz_za_grosze', 'podroze_za_grosze'],
+  ['karosienkiewicz', 'podroze_za_grosze'],
+  ['paunovicemaa', 'paunovicema'],
+  ['warawara2_', 'emmvvandera'],
+];
+for (const [alias, canonical] of HANDLE_ALIASES) {
+  const record = index.get(norm(canonical));
+  if (record && !index.has(norm(alias))) index.set(norm(alias), record);
+}
+
 export function marketForHandle(handle: string): 'Poland' | 'Serbia' | 'North Macedonia' | null {
   const market = findEnriched(handle)?.market;
   return market === 'Poland' || market === 'Serbia' || market === 'North Macedonia' ? market : null;

@@ -37,8 +37,8 @@ test('legacy Poland seed payload migrates without dropping creator content', () 
   assert.deepEqual(StateSchema.parse(normaliseState(parsed)), parsed);
 
   assert.equal(parsed.creators.length, 8);
-  assert.equal(parsed.campaign.name, 'Poland · Creator pilot');
-  assert.equal(parsed.campaign.target, 'Polish-speaking travellers with disrupted flights');
+  assert.equal(parsed.campaign.name, 'Poland · Serbia · North Macedonia');
+  assert.equal(parsed.campaign.target, 'Polish-, Serbian- and Macedonian-speaking travellers with disrupted flights');
   assert.equal(parsed.campaign.fee, 400);
   assert.equal(parsed.campaign.markets.Poland.name, 'Poland · Creator pilot');
   assert.equal(parsed.campaign.markets.Poland.target, 'Polish-speaking travellers with disrupted flights');

@@ -68,7 +68,7 @@ a.btn{text-decoration:none}
 .creator-identity{display:flex;flex-direction:row;align-items:center;gap:8px;min-width:0}
 .creator-copy{min-width:0;flex:1}
 .creator-name{min-width:0;gap:8px}
-.creator-name strong,.handle-row,.creator-copy>.cell-note{max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.creator-name strong,.handle-row,.creator-copy>.cell-note{max-width:118px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .creator-table tbody td{height:76px;max-height:76px;padding-top:8px;padding-bottom:8px;overflow:hidden}
 .creator-copy .handle-row{display:flex;flex-wrap:nowrap;overflow:hidden;max-width:140px}
 .creator-table td.num,.creator-table th.num{text-align:right;padding-left:6px;padding-right:8px}
@@ -82,3 +82,33 @@ a.btn{text-decoration:none}
 .market-pill.market-mk{background:#e8eef8;color:#3d5680}
 .detail-col{width:40px;padding-right:8px}
 .creator-table .pill{max-width:108px;overflow:hidden;text-overflow:ellipsis}
+.creator-avatar{position:relative;overflow:visible}
+.creator-avatar img{width:36px;height:36px;border-radius:50%;object-fit:cover;display:block}
+.verified-badge{position:absolute;right:-3px;bottom:-2px;color:#146f64;background:#fff;border-radius:50%}
+.source-tag{font-style:normal;font-size:9px;line-height:1.2;font-weight:700;letter-spacing:.03em;padding:0 3px;border-radius:3px}
+.source-creator{color:#146f64;background:#e5f4ef}
+.source-api{color:#5c6b7a;background:#eef1f4}
+.conflict-icon{color:#b26a12;display:inline-flex;flex:0 0 auto}
+.metric-stack{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.metric-line{display:inline-flex;align-items:center;justify-content:flex-end;gap:3px;white-space:nowrap;max-width:100%}
+.creator-table.both td.num{width:66px}
+.creator-table.both td.audience-cell{width:108px;min-width:108px}
+.cred-pill{font-size:10px;font-weight:700;line-height:1.4;padding:0 4px;border-radius:4px;flex:0 0 auto}
+.cred-pill.bad{background:#fde8e4;color:#9c382c}
+.cred-pill.warn{background:#f8efd8;color:#8a5a24}
+.cred-pill.ok{background:#e5f4ef;color:#146f64}
+.creator-table tbody tr.insight-row td{height:auto;max-height:none;overflow:visible;text-align:left;background:#f7faf8;white-space:normal}
+.insight-panel{padding:8px 4px 12px}
+.insight-platforms{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.platform-insight h3{display:flex;align-items:center;gap:8px;font-size:15px}
+.platform-insight h3 a{font-size:13px;font-weight:550;color:#1d7768}
+.audience-figure{display:flex;align-items:center;gap:6px;margin-top:6px}
+.audience-figure strong{font-variant-numeric:tabular-nums}
+.share-bars{display:flex;flex-direction:column;gap:4px;margin:6px 0}
+.share-row{display:grid;grid-template-columns:108px 1fr auto auto;gap:6px;align-items:center;font-size:12px}
+.share-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip-line{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:6px;font-size:12px}
+.chip-line em{font-style:normal;background:#eef3f1;border-radius:4px;padding:1px 6px}
+.post-strip{display:flex;gap:8px;overflow:auto;margin-top:8px;padding-bottom:4px}
+.post-strip a,.post-strip span{flex:0 0 auto;font-size:12px;background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 8px}
+@media (max-width:900px){.insight-platforms{grid-template-columns:1fr}}

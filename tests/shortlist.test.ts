@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { importCreators, mergeCreators, profileUrl, safeHttpUrl, quoteMetrics, strongerPlatform, StateSchema, defaultCampaign } from '../lib/model.ts';
 import { shortlistCsv } from '../lib/shortlist-csv.ts';
 
@@ -22,12 +23,71 @@ test('seed and imported markets survive a second validation', () => {
   const again = StateSchema.parse(JSON.parse(JSON.stringify(state)));
   assert.equal(again.creators.filter(item => item.market === 'Serbia').length, 7);
   assert.equal(again.creators.filter(item => item.market === 'North Macedonia').length, 7);
-  const legacySerbia = StateSchema.parse({
+  const matched = StateSchema.parse({
     campaign: defaultCampaign,
     snapshots: [],
-    creators: [{ ...JSON.parse(JSON.stringify(creators[0])), market: undefined, country: 'Serbia', profiles: undefined, platform: 'TikTok', followers: 10, median: 20, engagement: 1 }],
+    creators: [{ id: '@tragom_horizonta', name: 'Tragom', handle: '@tragom_horizonta', platform: 'TikTok', followers: 10, median: 20, engagement: 1, country: '', age: '', notes: 'keep', source: '', status: 'Sent', story: '', packages: [{ name: 'TikTok', fee: null, basis: 'unknown', views: 20 }], selected: 0, included: false, fit: { audience: null, content: null, action: null }, rationale: 'keep', gaps: '', adjustment: 0, extraCost: 0, viewsOverride: null, actual: { spend: null, visits: null, signed: null, recovered: null, revenue: null, handling: null } }],
   });
-  assert.equal(legacySerbia.creators[0].market, 'Serbia');
+  assert.equal(matched.creators[0].market, 'Serbia');
+  assert.equal(matched.creators[0].profiles.find(item => item.platform === 'Instagram')?.audience.homeShare, 70.6);
+  assert.equal(matched.creators[0].profiles.find(item => item.platform === 'Instagram')?.detail.homeSource, 'creator');
+  assert.ok(matched.creators[0].profiles.find(item => item.platform === 'Instagram')?.detail.conflicts.some(item => item.includes('API 21')));
+  const unknown = StateSchema.parse({
+    campaign: defaultCampaign,
+    snapshots: [],
+    creators: [{ id: '@nobody_xyz', name: 'Nobody', handle: '@nobody_xyz', platform: 'TikTok', followers: 10, median: 20, engagement: 1, country: '', age: '', notes: '', source: '', status: '', story: '', packages: [{ name: 'TikTok', fee: null, basis: 'unknown', views: 20 }], selected: 0, included: false, fit: { audience: null, content: null, action: null }, rationale: '', gaps: '', adjustment: 0, extraCost: 0, viewsOverride: null, actual: { spend: null, visits: null, signed: null, recovered: null, revenue: null, handling: null } }],
+  });
+  assert.equal(unknown.creators[0].market, 'Poland');
+});
+
+function legacyCreator(handle: string, name: string) {
+  return { id: handle, name, handle, platform: 'TikTok', followers: 10, median: 20, engagement: 1, country: '', age: '', notes: '', source: '', status: '', story: '', packages: [{ name: 'TikTok', fee: null, basis: 'unknown', views: 20 }], selected: 0, included: false, fit: { audience: null, content: null, action: null }, rationale: '', gaps: '', adjustment: 0, extraCost: 0, viewsOverride: null, actual: { spend: null, visits: null, signed: null, recovered: null, revenue: null, handling: null } };
+}
+
+test('creator audience is the displayed figure and the API is only a fallback', () => {
+  const emm = StateSchema.parse({ campaign: defaultCampaign, snapshots: [], creators: [legacyCreator('@emmvvandera', 'Emm')] }).creators[0];
+  const ig = emm.profiles.find(item => item.platform === 'Instagram');
+  assert.ok(ig);
+  assert.equal(ig.audience.homeShare, 63.1);
+  assert.equal(ig.detail.homeSource, 'creator');
+  assert.deepEqual(ig.detail.countries.map(item => item.label), ['North Macedonia']);
+  assert.equal(ig.detail.ageBands.length, 0);
+  assert.equal(ig.audience.age25, 94.9);
+  assert.equal(ig.detail.ageSource, 'creator');
+  assert.equal(ig.audience.female, 60.2);
+  assert.equal(ig.detail.genderSource, 'creator');
+  assert.ok(ig.detail.conflicts.some(item => item.includes('API 5.7')));
+  assert.equal(ig.detail.apiHome, 5.7);
+  const holiday = StateSchema.parse({ campaign: defaultCampaign, snapshots: [], creators: [legacyCreator('@holiday.stop', 'Holiday')] }).creators[0];
+  const tt = holiday.profiles.find(item => item.platform === 'TikTok');
+  assert.ok(tt);
+  assert.equal(tt.detail.homeSource, 'api');
+  assert.equal(tt.audience.homeShare, 91.4);
+  assert.equal(tt.detail.ageSource, 'creator');
+  assert.equal(tt.audience.age25, 82.8);
+  assert.equal(tt.detail.ageBands.length, 0);
+  const covek = StateSchema.parse({ campaign: defaultCampaign, snapshots: [], creators: [legacyCreator('@1covek', 'Covek')] }).creators[0];
+  const covekTt = covek.profiles.find(item => item.platform === 'TikTok');
+  assert.equal(covekTt?.detail.usable, false);
+  assert.equal(covekTt?.followers, null);
+  assert.equal(covek.market, 'North Macedonia');
+});
+
+test('enriched CSV keeps creator audience and a secondary TikTok median', () => {
+  const text = readFileSync(new URL('../lib/data/creators-enriched.csv', import.meta.url), 'utf8');
+  const rows = importCreators(text, 'creators_enriched.csv');
+  assert.equal(rows.length, 22);
+  assert.equal(rows.filter(item => item.market === 'Serbia').length, 7);
+  assert.equal(rows.filter(item => item.market === 'North Macedonia').length, 7);
+  const ig = rows.find(item => item.handle === '@emmvvandera')?.profiles.find(item => item.platform === 'Instagram');
+  assert.equal(ig?.audience.homeShare, 63.1);
+  assert.equal(ig?.detail.homeSource, 'creator');
+  assert.deepEqual(ig?.detail.countries.map(item => item.label), ['North Macedonia']);
+  assert.equal(ig?.detail.apiHome, 5.7);
+  const luta = rows.find(item => item.handle === '@lutajuci_putnik');
+  assert.equal(luta?.market, 'Serbia');
+  assert.equal(luta?.profiles.find(item => item.platform === 'TikTok')?.median, 21853.5);
+  assert.equal(luta?.profiles.find(item => item.platform === 'Instagram')?.median, 175442);
 });
 
 test('shortlist CSV imports 22 creators across three markets', () => {

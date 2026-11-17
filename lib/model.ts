@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { findEnriched, marketForHandle, profileFromRaw, type AudienceSource, type CatalogProfile } from './catalog.ts';
 
 const num = z.number().finite().min(0).max(1e10);
 const pct = num.max(100);
@@ -28,6 +29,67 @@ export const AudienceSchema = z.object({
   other: pct.nullable(),
 });
 
+const labelled = z.object({ label: z.string().max(80), pct: pct });
+const optionalLabelled = z.object({ label: z.string().max(120), pct: pct.nullable() });
+const source = z.enum(['', 'creator', 'api']).default('');
+export const DetailSchema = z.object({
+  picture: z.string().max(2000).default(''),
+  verified: z.boolean().default(false),
+  following: num.nullable().default(null),
+  posts: num.nullable().default(null),
+  medianEngagements: num.nullable().default(null),
+  medianLikes: num.nullable().default(null),
+  medianComments: num.nullable().default(null),
+  medianShares: num.nullable().default(null),
+  medianSaves: num.nullable().default(null),
+  avgLikes: num.nullable().default(null),
+  avgComments: num.nullable().default(null),
+  viewEngagement: pct.nullable().default(null),
+  quotedCpm: num.nullable().default(null),
+  quotedCpe: num.nullable().default(null),
+  homeSource: source,
+  ageSource: source,
+  genderSource: source,
+  countrySource: source,
+  ageBandSource: source,
+  apiHome: pct.nullable().default(null),
+  apiAge25: pct.nullable().default(null),
+  apiFemale: pct.nullable().default(null),
+  apiMale: pct.nullable().default(null),
+  countries: z.array(labelled).max(6).default([]),
+  ageBands: z.array(labelled).max(8).default([]),
+  credibility: pct.nullable().default(null),
+  suspicious: pct.nullable().default(null),
+  interests: z.array(optionalLabelled).max(8).default([]),
+  brandAffinity: z.array(optionalLabelled).max(8).default([]),
+  growth3m: z.number().finite().nullable().default(null),
+  growth12m: z.number().finite().nullable().default(null),
+  postsPerMonth: z.number().finite().nullable().default(null),
+  lastPost: z.string().max(40).default(''),
+  niche: z.string().max(160).default(''),
+  category: z.string().max(80).default(''),
+  bio: z.string().max(2000).default(''),
+  location: z.string().max(120).default(''),
+  language: z.string().max(80).default(''),
+  contactEmail: z.string().max(200).default(''),
+  hashtags: z.array(z.string().max(80)).max(12).default([]),
+  brandsFound: z.array(z.string().max(80)).max(12).default([]),
+  pastSponsors: z.array(z.string().max(80)).max(12).default([]),
+  incomeMin: num.nullable().default(null),
+  incomeMax: num.nullable().default(null),
+  recentPosts: z.array(z.object({
+    date: z.string().max(40).default(''),
+    url: z.string().max(800).default(''),
+    views: num.nullable().default(null),
+    likes: num.nullable().default(null),
+    comments: num.nullable().default(null),
+    shares: num.nullable().default(null),
+  })).max(12).default([]),
+  conflicts: z.array(z.string().max(240)).max(8).default([]),
+  usable: z.boolean().nullable().default(null),
+  medianNote: z.string().max(400).default(''),
+});
+
 export const ProfileSchema = z.object({
   platform: z.string().max(40),
   handle: txt,
@@ -37,6 +99,7 @@ export const ProfileSchema = z.object({
   average: num.nullable(),
   engagement: pct.nullable(),
   audience: AudienceSchema,
+  detail: DetailSchema,
 });
 
 export const PackageSchema = z.object({
@@ -64,6 +127,7 @@ export const CreatorSchema = z.object({
   source: txt,
   status: txt,
   story: txt,
+  contactEmail: z.string().max(200).default(''),
   packages: z.array(PackageSchema).max(20),
   selected: z.number().int().min(0).max(19),
   included: z.boolean(),
@@ -404,8 +468,85 @@ function blankAudience(): Audience {
   return { homeShare: null, age25: null, female: null, male: null, other: null };
 }
 
+function emptyDetail(): Profile['detail'] {
+  return {
+    picture: '', verified: false, following: null, posts: null, medianEngagements: null, medianLikes: null, medianComments: null, medianShares: null, medianSaves: null,
+    avgLikes: null, avgComments: null, viewEngagement: null, quotedCpm: null, quotedCpe: null, homeSource: '', ageSource: '', genderSource: '', countrySource: '', ageBandSource: '',
+    apiHome: null, apiAge25: null, apiFemale: null, apiMale: null, countries: [], ageBands: [], credibility: null, suspicious: null, interests: [], brandAffinity: [],
+    growth3m: null, growth12m: null, postsPerMonth: null, lastPost: '', niche: '', category: '', bio: '', location: '', language: '', contactEmail: '',
+    hashtags: [], brandsFound: [], pastSponsors: [], incomeMin: null, incomeMax: null, recentPosts: [], conflicts: [], usable: null, medianNote: '',
+  };
+}
+
+function asSource(value: unknown): AudienceSource {
+  return value === 'creator' || value === 'api' ? value : '';
+}
+
+function normaliseDetail(raw: unknown): Profile['detail'] {
+  const base = emptyDetail();
+  const d = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
+  const list = (value: unknown, max = 12) => Array.isArray(value) ? value.map(item => text(item, 80)).filter(Boolean).slice(0, max) : base.hashtags;
+  const bars = (value: unknown, max = 6) => Array.isArray(value) ? value.slice(0, max).map(item => {
+    const row = item && typeof item === 'object' ? item as Record<string, unknown> : {};
+    return { label: text(row.label, 80), pct: percentOrNull(row.pct) ?? 0 };
+  }) : [];
+  const optionalBars = (value: unknown) => Array.isArray(value) ? value.slice(0, 8).map(item => {
+    const row = item && typeof item === 'object' ? item as Record<string, unknown> : {};
+    return { label: text(row.label, 120), pct: percentOrNull(row.pct) };
+  }) : [];
+  return {
+    ...base,
+    picture: text(d.picture, 2000), verified: d.verified === true, following: numberOrNull(d.following), posts: numberOrNull(d.posts),
+    medianEngagements: numberOrNull(d.medianEngagements), medianLikes: numberOrNull(d.medianLikes), medianComments: numberOrNull(d.medianComments),
+    medianShares: numberOrNull(d.medianShares), medianSaves: numberOrNull(d.medianSaves), avgLikes: numberOrNull(d.avgLikes), avgComments: numberOrNull(d.avgComments),
+    viewEngagement: percentOrNull(d.viewEngagement), quotedCpm: numberOrNull(d.quotedCpm), quotedCpe: numberOrNull(d.quotedCpe),
+    homeSource: asSource(d.homeSource), ageSource: asSource(d.ageSource), genderSource: asSource(d.genderSource), countrySource: asSource(d.countrySource), ageBandSource: asSource(d.ageBandSource),
+    apiHome: percentOrNull(d.apiHome), apiAge25: percentOrNull(d.apiAge25), apiFemale: percentOrNull(d.apiFemale), apiMale: percentOrNull(d.apiMale),
+    countries: bars(d.countries), ageBands: bars(d.ageBands, 8), credibility: percentOrNull(d.credibility), suspicious: percentOrNull(d.suspicious),
+    interests: optionalBars(d.interests), brandAffinity: optionalBars(d.brandAffinity),
+    growth3m: typeof d.growth3m === 'number' && Number.isFinite(d.growth3m) ? d.growth3m : null,
+    growth12m: typeof d.growth12m === 'number' && Number.isFinite(d.growth12m) ? d.growth12m : null,
+    postsPerMonth: typeof d.postsPerMonth === 'number' && Number.isFinite(d.postsPerMonth) ? d.postsPerMonth : null,
+    lastPost: text(d.lastPost, 40), niche: text(d.niche, 160), category: text(d.category, 80), bio: text(d.bio, 2000), location: text(d.location, 120), language: text(d.language, 80), contactEmail: text(d.contactEmail, 200),
+    hashtags: list(d.hashtags), brandsFound: list(d.brandsFound), pastSponsors: list(d.pastSponsors),
+    incomeMin: numberOrNull(d.incomeMin), incomeMax: numberOrNull(d.incomeMax),
+    recentPosts: Array.isArray(d.recentPosts) ? d.recentPosts.slice(0, 12).map(item => {
+      const post = item && typeof item === 'object' ? item as Record<string, unknown> : {};
+      return { date: text(post.date, 40), url: text(post.url, 800), views: numberOrNull(post.views), likes: numberOrNull(post.likes), comments: numberOrNull(post.comments), shares: numberOrNull(post.shares) };
+    }) : [],
+    conflicts: list(d.conflicts, 8).map(item => item.slice(0, 240)), usable: typeof d.usable === 'boolean' ? d.usable : null, medianNote: text(d.medianNote, 400),
+  };
+}
+
 function blankProfile(platform: string): Profile {
-  return { platform, handle: '', url: '', followers: null, median: null, average: null, engagement: null, audience: blankAudience() };
+  return { platform, handle: '', url: '', followers: null, median: null, average: null, engagement: null, audience: blankAudience(), detail: emptyDetail() };
+}
+
+function detailFromCatalog(mapped: CatalogProfile): Profile['detail'] {
+  return {
+    ...emptyDetail(),
+    picture: mapped.picture, verified: mapped.verified, following: mapped.following, posts: mapped.posts,
+    viewEngagement: mapped.viewEngagement, quotedCpm: mapped.quotedCpm, quotedCpe: mapped.quotedCpe,
+    homeSource: mapped.homeSource, ageSource: mapped.ageSource, genderSource: mapped.genderSource, countrySource: mapped.countrySource, ageBandSource: mapped.ageBandSource,
+    apiHome: mapped.apiHome, apiAge25: mapped.apiAge25, apiFemale: mapped.apiFemale, apiMale: mapped.apiMale,
+    countries: mapped.countries, ageBands: mapped.ageBands, credibility: mapped.credibility, suspicious: mapped.suspicious,
+    interests: mapped.interests, brandAffinity: mapped.brandAffinity, growth3m: mapped.growth3m, growth12m: mapped.growth12m, postsPerMonth: mapped.postsPerMonth,
+    lastPost: mapped.lastPost, niche: mapped.niche, category: mapped.category, bio: mapped.bio, location: mapped.location, language: mapped.language, contactEmail: mapped.contactEmail,
+    hashtags: mapped.hashtags, brandsFound: mapped.brandsFound, pastSponsors: mapped.pastSponsors, incomeMin: mapped.incomeMin, incomeMax: mapped.incomeMax,
+    recentPosts: mapped.recentPosts, conflicts: mapped.conflicts, usable: mapped.usable, medianNote: mapped.medianNote,
+  };
+}
+
+export function profileFromCatalog(platform: string, mapped: CatalogProfile | null): Profile {
+  if (!mapped || mapped.usable === false) {
+    const detail = mapped ? detailFromCatalog(mapped) : emptyDetail();
+    if (mapped) detail.usable = false;
+    return { platform, handle: mapped?.handle ?? '', url: mapped?.url ?? '', followers: null, median: null, average: null, engagement: null, audience: blankAudience(), detail };
+  }
+  return {
+    platform, handle: mapped.handle, url: mapped.url, followers: mapped.followers, median: mapped.median, average: mapped.average, engagement: mapped.engagement,
+    audience: { ...mapped.audience }, detail: detailFromCatalog(mapped),
+  };
 }
 
 function orderProfiles(list: Profile[]): Profile[] {
@@ -472,6 +613,7 @@ function normaliseProfile(raw: unknown): Profile {
       male: percentOrNull(audience.male),
       other: percentOrNull(audience.other),
     },
+    detail: normaliseDetail(p.detail),
   };
 }
 
@@ -645,6 +787,7 @@ function creatorShell(c: Record<string, unknown>, packages: Package[], notes: st
     source: text(c.source),
     status: text(c.status),
     story: text(c.story),
+    contactEmail: text(c.contactEmail, 200),
     packages,
     selected,
     included: c.included === true,
@@ -658,21 +801,58 @@ function creatorShell(c: Record<string, unknown>, packages: Package[], notes: st
   };
 }
 
-function marketFromRecord(record: Record<string, unknown>): Market {
+function resolveMarket(record: Record<string, unknown>, handles: string[]) {
   const explicit = String(record.market ?? '').trim();
-  if (isMarket(explicit)) return explicit;
+  if (isMarket(explicit)) return { market: explicit, explicit: true };
+  for (const handle of handles) {
+    const found = marketForHandle(handle);
+    if (found) return { market: found, explicit: false };
+  }
   const country = String(record.country ?? '').trim();
-  if (isMarket(country)) return country;
-  return 'Poland';
+  if (isMarket(country)) return { market: country, explicit: false };
+  return { market: 'Poland' as Market, explicit: false };
+}
+
+function overlayCatalog(creator: Creator, explicitMarket: boolean): Creator {
+  const record = findEnriched(creator.handle) ?? creator.profiles.map(profile => findEnriched(profile.handle)).find(Boolean) ?? null;
+  if (!record) return creator;
+  const catalogMarket = String(record.market ?? '');
+  if (!explicitMarket && isMarket(catalogMarket)) creator.market = catalogMarket;
+  const catalogEmail = typeof record.contact_email === 'string' ? record.contact_email : '';
+  if (!creator.contactEmail && catalogEmail) creator.contactEmail = text(catalogEmail, 200);
+  const platforms = record.platforms && typeof record.platforms === 'object' ? record.platforms as Record<string, unknown> : {};
+  for (const name of PLATFORMS) {
+    const profile = creator.profiles.find(item => item.platform === name);
+    const mapped = profileFromRaw(platforms[name.toLowerCase()], creator.market);
+    if (!profile || !mapped) continue;
+    const saved = profile.detail.homeSource || profile.detail.ageSource || profile.detail.genderSource;
+    if (saved) {
+      if (!profile.detail.picture) profile.detail.picture = mapped.picture;
+      if (!profile.detail.bio) profile.detail.bio = mapped.bio;
+      if (profile.detail.usable == null) profile.detail.usable = mapped.usable;
+      continue;
+    }
+    const next = profileFromCatalog(name, mapped);
+    profile.handle = next.handle || profile.handle;
+    profile.url = next.url || profile.url;
+    profile.followers = next.followers;
+    profile.median = next.median;
+    profile.average = next.average;
+    profile.engagement = next.engagement;
+    profile.audience = next.audience;
+    profile.detail = next.detail;
+  }
+  return creator;
 }
 
 function upgradeCreator(raw: unknown): Creator {
   const c = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
   const packages = Array.isArray(c.packages) && c.packages.length ? c.packages.map(normalisePackage) : [normalisePackage({ name: 'TikTok', fee: null, basis: 'unknown', views: null })];
   if (Array.isArray(c.profiles) && c.profiles.length) {
-    const market = marketFromRecord(c);
+    const profiles = orderProfiles(c.profiles.map(normaliseProfile));
+    const resolved = resolveMarket(c, [text(c.handle), ...profiles.map(profile => profile.handle)]);
     const platform = canonicalPlatform(String(c.platform ?? '')) ?? text(c.platform || 'TikTok', 40);
-    return { ...creatorShell(c, packages, text(c.notes)), market, platform, profiles: orderProfiles(c.profiles.map(normaliseProfile)) };
+    return overlayCatalog({ ...creatorShell(c, packages, text(c.notes)), market: resolved.market, platform, profiles }, resolved.explicit);
   }
   const platform = canonicalPlatform(String(c.platform ?? 'TikTok')) ?? 'TikTok';
   const profiles = orderProfiles([]);
@@ -685,9 +865,10 @@ function upgradeCreator(raw: unknown): Creator {
     const fromPackage = packages.find(pkg => pkg.platform === platform && !pkg.paidPromo && pkg.views != null);
     if (fromPackage?.views != null) primary.median = fromPackage.views;
   }
+  const resolved = resolveMarket(c, [primary.handle]);
   const countryText = text(c.country);
   const ageText = text(c.age);
-  const homes = parseHomeShares(countryText, 'Poland');
+  const homes = parseHomeShares(countryText, resolved.market);
   const ages = parseAges(ageText);
   for (const name of PLATFORMS) {
     const profile = profiles.find(item => item.platform === name);
@@ -695,19 +876,19 @@ function upgradeCreator(raw: unknown): Creator {
     if (homes[name] != null) profile.audience.homeShare = homes[name] ?? null;
     if (ages[name] != null) profile.audience.age25 = ages[name] ?? null;
   }
-  if (primary.audience.homeShare == null) primary.audience.homeShare = bareHome(countryText, 'Poland');
+  if (primary.audience.homeShare == null) primary.audience.homeShare = bareHome(countryText, resolved.market);
   if (primary.audience.age25 == null) primary.audience.age25 = bareAge(ageText);
   const notes = text(c.notes);
   const extra = [
     countryText.trim() ? `Audience country (previous): ${countryText.trim()}` : '',
     ageText.trim() ? `Age 25+ (previous): ${ageText.trim()}` : '',
   ].filter(line => line && !notes.includes(line));
-  return {
+  return overlayCatalog({
     ...creatorShell(c, packages, [notes, ...extra].filter(Boolean).join('\n')),
-    market: marketFromRecord(c),
+    market: resolved.market,
     platform,
     profiles,
-  };
+  }, resolved.explicit);
 }
 
 function upgradeCampaign(raw: unknown): Campaign {
@@ -798,6 +979,12 @@ function cellNumber(s: string) {
   if (!Number.isFinite(n) || n < 0) throw new Error('Invalid non-negative number: ' + s);
   return n;
 }
+function signedNumber(s: string) {
+  const trimmed = s.trim();
+  if (!trimmed || /^missing$/i.test(trimmed)) return null;
+  const n = Number(trimmed.replace(/,/g, ''));
+  return Number.isFinite(n) ? n : null;
+}
 
 function atHandle(handle: string) {
   const trimmed = handle.trim();
@@ -877,6 +1064,109 @@ function importTracker(rows: string[][], headers: string[], source: string): Cre
     applyGender(creator.profiles, get('Stats: audience F/M'), canonicalPlatform(creator.platform));
     return CreatorSchema.parse(creator);
   });
+}
+
+function columnSource(value: string): AudienceSource {
+  if (/creator/i.test(value)) return 'creator';
+  if (/api|influencers/i.test(value)) return 'api';
+  return '';
+}
+function splitList(value: string) {
+  return value.split(';').map(item => item.trim()).filter(item => item && !/^missing$/i.test(item));
+}
+function overlayEnrichedColumns(profiles: Profile[], get: (key: string) => string, market: string) {
+  for (const [prefix, name] of [['tt', 'TikTok'], ['ig', 'Instagram']] as const) {
+    const profile = profiles.find(item => item.platform === name);
+    if (!profile) continue;
+    const usable = get(`${prefix}_usable`).trim().toLowerCase();
+    if (usable === 'no' || usable === 'false') {
+      profile.detail.usable = false;
+      profile.followers = null;
+      profile.median = null;
+      profile.average = null;
+      profile.engagement = null;
+      profile.audience = blankAudience();
+      profile.detail.conflicts = splitList(get(`${prefix}_conflicts`)).slice(0, 8);
+      continue;
+    }
+    if (!get(`${prefix}_median_views`) && !get(`${prefix}_followers`) && !get(`${prefix}_handle`)) continue;
+    const handle = atHandle(get(`${prefix}_handle`));
+    if (handle) profile.handle = handle;
+    if (keptNote(get(`${prefix}_url`))) profile.url = get(`${prefix}_url`).trim();
+    const followers = cellNumber(get(`${prefix}_followers`));
+    const median = cellNumber(get(`${prefix}_median_views`));
+    const average = cellNumber(get(`${prefix}_avg_views`));
+    const engagement = cellNumber(get(`${prefix}_engagement_rate_pct`));
+    if (followers != null) profile.followers = followers;
+    if (median != null) profile.median = median;
+    if (average != null) profile.average = average;
+    if (engagement != null) profile.engagement = engagement;
+    const home = cellNumber(get(`${prefix}_home_share_pct`));
+    const age = cellNumber(get(`${prefix}_age25_pct`));
+    const female = cellNumber(get(`${prefix}_female_pct`));
+    const male = cellNumber(get(`${prefix}_male_pct`));
+    const homeSource = columnSource(get(`${prefix}_home_share_source`));
+    const ageSource = columnSource(get(`${prefix}_age25_source`));
+    const genderSource = columnSource(get(`${prefix}_gender_source`));
+    if (home != null) profile.audience.homeShare = home;
+    if (age != null) profile.audience.age25 = age;
+    if (female != null) profile.audience.female = female;
+    if (male != null) profile.audience.male = male;
+    const conflicts = splitList(get(`${prefix}_conflicts`)).slice(0, 8);
+    const apiFrom = (needle: string) => {
+      const row = conflicts.find(item => item.toLowerCase().includes(needle));
+      const match = row?.match(/API\s+([\d.]+)/i);
+      const value = match ? Number(match[1]) : null;
+      return value != null && value >= 0 && value <= 100 ? value : null;
+    };
+    const countries = homeSource === 'creator' && home != null
+      ? [{ label: market, pct: home }]
+      : splitList(get(`${prefix}_top_countries`)).map(part => {
+        const match = part.match(/^(.*)\s([\d.]+)%$/);
+        return match ? { label: match[1].trim(), pct: Number(match[2]) } : null;
+      }).filter((row): row is { label: string; pct: number } => !!row && row.pct <= 100).slice(0, 5);
+    profile.detail = {
+      ...profile.detail,
+      usable: true,
+      picture: keptNote(get(`${prefix}_profile_picture`)) || profile.detail.picture,
+      verified: /^(yes|true)$/i.test(get(`${prefix}_verified`)),
+      following: cellNumber(get(`${prefix}_following`)),
+      posts: cellNumber(get(`${prefix}_posts`)),
+      medianLikes: cellNumber(get(`${prefix}_median_likes`)),
+      medianComments: cellNumber(get(`${prefix}_median_comments`)),
+      medianShares: cellNumber(get(`${prefix}_median_shares`)),
+      medianSaves: cellNumber(get(`${prefix}_median_saves`)),
+      medianEngagements: cellNumber(get(`${prefix}_median_engagements`)),
+      avgLikes: cellNumber(get(`${prefix}_avg_likes`)),
+      avgComments: cellNumber(get(`${prefix}_avg_comments`)),
+      viewEngagement: cellNumber(get(`${prefix}_view_engagement_rate_pct`)),
+      quotedCpm: cellNumber(get(`${prefix}_cpm_pln`)),
+      quotedCpe: cellNumber(get(`${prefix}_cpe_pln`)),
+      homeSource, ageSource, genderSource,
+      countrySource: homeSource === 'creator' ? 'creator' : countries.length ? 'api' : '',
+      apiHome: homeSource === 'creator' ? apiFrom('home') : null,
+      apiAge25: ageSource === 'creator' ? apiFrom('age') : null,
+      apiFemale: genderSource === 'creator' ? apiFrom('female') : null,
+      countries,
+      credibility: cellNumber(get(`${prefix}_credibility_pct`)),
+      suspicious: cellNumber(get(`${prefix}_suspicious_followers_pct`)),
+      interests: splitList(get(`${prefix}_audience_interests`)).slice(0, 6).map(label => ({ label, pct: null })),
+      brandAffinity: splitList(get(`${prefix}_audience_brand_affinity`)).slice(0, 6).map(label => ({ label, pct: null })),
+      growth3m: signedNumber(get(`${prefix}_growth_3m_pct`)),
+      growth12m: signedNumber(get(`${prefix}_growth_12m_pct`)),
+      postsPerMonth: cellNumber(get(`${prefix}_posts_per_month`)),
+      lastPost: keptNote(get(`${prefix}_last_post_date`)),
+      niche: keptNote(get(`${prefix}_niche`)),
+      category: keptNote(get(`${prefix}_category`)),
+      bio: keptNote(get(`${prefix}_bio`)),
+      location: keptNote(get(`${prefix}_location`)),
+      contactEmail: keptNote(get(`${prefix}_contact_email`)),
+      hashtags: splitList(get(`${prefix}_top_hashtags`)).slice(0, 12),
+      brandsFound: splitList(get(`${prefix}_brands_found`)).slice(0, 12),
+      pastSponsors: splitList(get(`${prefix}_past_sponsors`)).slice(0, 12),
+      conflicts,
+    };
+  }
 }
 
 function importShortlist(rows: string[][], headers: string[], source: string): Creator[] {
@@ -972,6 +1262,7 @@ function importShortlist(rows: string[][], headers: string[], source: string): C
       keptNote(get('metrics_source')) ? `Metrics: ${get('metrics_source').trim()}` : '',
     ].filter(Boolean);
     const redFlags = keptNote(get('red_flags'));
+    if (headers.includes('tt_median_views')) overlayEnrichedColumns(profiles, get, market);
     return CreatorSchema.parse({
       id: handle.toLowerCase(),
       name: get('name'),

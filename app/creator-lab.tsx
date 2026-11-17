@@ -1,13 +1,14 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Users, SlidersHorizontal, ChartNoAxesCombined, ArrowUpRight, Upload, Download, Save, Check, Search, Plus, Info, CircleAlert, ChevronRight, Target, History, ClipboardCheck } from 'lucide-react';
+import { Users, SlidersHorizontal, ChartNoAxesCombined, ArrowUpRight, Upload, Download, Save, Check, Search, Plus, Info, CircleAlert, ChevronRight, ChevronDown, Target, History, ClipboardCheck, BadgeCheck } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ConflictMark, CreatorInsight, SourceTag } from '@/components/creator-insight';
 import { BASIS_LABEL, FEE_BASES, MARKETS, PLATFORMS, StateSchema, decision, economics, feeDetail, fitScore, forecast, importCreators, importOutcomes, mergeCreators, csvCell, profileUrl, quoteMetrics, safeHttpUrl, strongerPlatform, type Audience, type Campaign, type Creator, type FeeBasis, type Market, type Package, type PlatformName, type Profile, type State } from '@/lib/model';
 
 const n = (v: number | null | undefined, d = 0) => v == null ? '—' : new Intl.NumberFormat('en-GB', { maximumFractionDigits: d }).format(v);
@@ -15,7 +16,7 @@ const money = (v: number | null | undefined) => v == null ? '—' : `${n(v)} zł
 const percent = (v: number | null | undefined) => v == null ? '—' : `${n(v, 1)}%`;
 const CPM_TIP = 'Net CPM = (net fee for that platform’s primary 1× deliverable, without paid promotion, in PLN) ÷ median views × 1,000. Gross, tax-on-top and unknown fees are marked and left out.';
 const CPE_TIP = 'CPE = net fee ÷ median engagements. When a separate engagement count is not supplied, median engagements = engagement rate × median views.';
-const HOME_TIP = 'Home-market audience share on this platform only. TikTok and Instagram are never combined. The share is measured against the creator’s market.';
+const HOME_TIP = 'Home-market audience share on this platform only, measured against the creator’s market. Creator-provided figures are shown. API figures appear only when the creator gave none.';
 const METRICS = [
   { key: 'followers', label: 'Followers', title: 'Followers on this platform', numeric: true },
   { key: 'median', label: 'Median', title: 'Median views', numeric: true },
@@ -101,10 +102,24 @@ function HandleLink({ platform, handle, url }: { platform: string; handle: strin
 function marketLabel(market: string) {
   return market === 'North Macedonia' ? 'N. Macedonia' : market;
 }
+function audienceHint(profile: Profile | undefined, field: 'home' | 'age' | 'gender') {
+  if (!profile) return '';
+  const source = field === 'home' ? profile.detail.homeSource : field === 'age' ? profile.detail.ageSource : profile.detail.genderSource;
+  const value = field === 'home' ? profile.audience.homeShare : field === 'age' ? profile.audience.age25 : profile.audience.female;
+  const api = field === 'home' ? profile.detail.apiHome : field === 'age' ? profile.detail.apiAge25 : profile.detail.apiFemale;
+  if (!source) return '';
+  const label = source === 'creator' ? 'Creator-provided' : 'API fallback';
+  const conflict = source === 'creator' && value != null && api != null && Math.abs(value - api) > 10;
+  return conflict ? `${label}. API figure is ${n(api, 1)}% and is not the main value.` : label;
+}
 function MetricCell({ creator, platform, field, win, compact }: { creator: Creator; platform: PlatformName; field: string; win: boolean; compact: boolean }) {
   const profile = creator.profiles.find(item => item.platform === platform);
   const quote = quoteMetrics(creator, platform);
   const audience = profile?.audience;
+  const detail = profile?.detail;
+  const unusable = detail?.usable === false;
+  const cellClass = `${field === 'female' ? '' : 'num '}${platform === 'TikTok' ? 'cell-tt' : 'cell-ig'}${win ? ' stronger' : ''}${field === 'female' ? ' gender-cell' : ''}${field === 'home' || field === 'age' || field === 'female' ? ' audience-cell' : ''}`;
+  if (unusable) return <TableCell className={cellClass} title="No usable account"><strong className="metric-muted">—</strong></TableCell>;
   let main = '—';
   let note = '';
   let title = '';
@@ -114,10 +129,28 @@ function MetricCell({ creator, platform, field, win, compact }: { creator: Creat
   else if (field === 'engagement') { main = percent(profile?.engagement); muted = profile?.engagement == null; title = 'Engagement rate'; }
   else if (field === 'cpm') { main = quote.cpm == null ? '—' : n(quote.cpm, 1); note = quote.cpm == null ? shortReason(quote.unavailable) : 'zł'; title = `${quote.unavailable || 'Net CPM, zł per 1,000 views'}. ${feeDetail(quote.pkg)}`; muted = quote.cpm == null; }
   else if (field === 'cpe') { main = quote.cpe == null ? '—' : n(quote.cpe, 2); note = quote.cpe == null ? shortReason(quote.cpeUnavailable) : 'zł'; title = `${CPE_TIP} ${feeDetail(quote.pkg)}`; muted = quote.cpe == null; }
-  else if (field === 'home') { main = percent(audience?.homeShare); note = compact && audience?.age25 != null ? `25+ ${percent(audience.age25)}` : ''; title = `${creator.market} audience on ${platform}. ${genderText(audience)}. ${HOME_TIP}`; muted = audience?.homeShare == null; }
-  else if (field === 'age') { main = percent(audience?.age25); muted = audience?.age25 == null; title = 'Share aged 25 or over on this platform.'; }
-  else if (field === 'female') { main = genderText(audience); title = genderText(audience); muted = audience?.female == null && audience?.male == null; }
-  return <TableCell className={`${field === 'female' ? '' : 'num '}${platform === 'TikTok' ? 'cell-tt' : 'cell-ig'}${win ? ' stronger' : ''}${field === 'female' ? ' gender-cell' : ''}`} title={title}><strong className={muted ? 'metric-muted' : ''}>{main}</strong>{note && <small className="cell-note">{note}</small>}</TableCell>;
+  else if (field === 'home') {
+    title = `${creator.market} audience on ${platform}. ${genderText(audience)}. ${HOME_TIP}`;
+    muted = audience?.homeShare == null;
+    return <TableCell className={cellClass} title={title}><span className="metric-stack"><span className="metric-line"><strong className={muted ? 'metric-muted' : ''}>{percent(audience?.homeShare)}</strong><SourceTag source={detail?.homeSource ?? ''} /><ConflictMark value={audience?.homeShare ?? null} api={detail?.apiHome ?? null} label="Home share" /></span>{compact && audience?.age25 != null && <span className="metric-line cell-note"><span>25+ {percent(audience.age25)}</span><SourceTag source={detail?.ageSource ?? ''} /><ConflictMark value={audience.age25} api={detail?.apiAge25 ?? null} label="Age 25+" /></span>}</span></TableCell>;
+  }
+  else if (field === 'age') {
+    muted = audience?.age25 == null;
+    return <TableCell className={cellClass} title="Share aged 25 or over on this platform."><span className="metric-line"><strong className={muted ? 'metric-muted' : ''}>{percent(audience?.age25)}</strong><SourceTag source={detail?.ageSource ?? ''} /><ConflictMark value={audience?.age25 ?? null} api={detail?.apiAge25 ?? null} label="Age 25+" /></span></TableCell>;
+  }
+  else if (field === 'female') {
+    const femaleGap = detail?.genderSource === 'creator' && audience?.female != null && detail.apiFemale != null && Math.abs(audience.female - detail.apiFemale) > 10;
+    const maleGap = detail?.genderSource === 'creator' && audience?.male != null && detail.apiMale != null && Math.abs(audience.male - detail.apiMale) > 10;
+    title = femaleGap || maleGap ? `Creator split shown.${femaleGap ? ` API female ${n(detail?.apiFemale, 1)}%.` : ''}${maleGap ? ` API male ${n(detail?.apiMale, 1)}%.` : ''}` : genderText(audience);
+    return <TableCell className={cellClass} title={title}><span className="metric-line"><strong className={audience?.female == null && audience?.male == null ? 'metric-muted' : ''}>{genderText(audience)}</strong><SourceTag source={detail?.genderSource ?? ''} />{femaleGap && <ConflictMark value={audience?.female ?? null} api={detail?.apiFemale ?? null} label="Female share" />}{!femaleGap && maleGap && <ConflictMark value={audience?.male ?? null} api={detail?.apiMale ?? null} label="Male share" />}</span></TableCell>;
+  }
+  return <TableCell className={cellClass} title={title}><strong className={muted ? 'metric-muted' : ''}>{main}</strong>{note && <small className="cell-note">{note}</small>}</TableCell>;
+}
+function CreatorFace({ creator, tone }: { creator: Creator; tone: number }) {
+  const picture = creator.profiles.find(item => item.platform === creator.platform)?.detail.picture || creator.profiles.find(item => item.detail.picture)?.detail.picture || '';
+  const verified = creator.profiles.some(item => item.detail.verified);
+  const [failed, setFailed] = useState(false);
+  return <span className={`creator-avatar tone-${tone}`}>{picture && !failed ? <img src={picture} alt="" onError={() => setFailed(true)} /> : initials(creator.name)}{verified && <BadgeCheck size={14} className="verified-badge" aria-label="Verified" />}</span>;
 }
 function SortHead({ label, sortKey, active, dir, onSort, title, className, rowSpan }: { label: string; sortKey: string; active: boolean; dir: 'asc' | 'desc'; onSort: (key: string) => void; title?: string; className?: string; rowSpan?: number }) {
   return <TableHead className={className} rowSpan={rowSpan} aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}><button type="button" className="btn ghost sort-head" title={title} onClick={() => onSort(sortKey)}>{label}{active ? (dir === 'asc' ? ' ↑' : ' ↓') : ''}</button></TableHead>;
@@ -144,9 +177,9 @@ function PlatformFields({ creator, platform, onProfile, onAudience, onSelect }: 
     <div className="mini-heading">{creator.market} audience on {platform}</div>
     <p className="muted">These figures are only for {platform}. They are not mixed with the other platform.</p>
     <div className="two-fields">
-      <Numeric label={`${creator.market} share`} value={profile?.audience.homeShare ?? null} suffix="%" max={100} step={0.1} onChange={value => onAudience({ homeShare: value })} />
-      <Numeric label="Age 25+" value={profile?.audience.age25 ?? null} suffix="%" max={100} step={0.1} onChange={value => onAudience({ age25: value })} />
-      <Numeric label="Female" value={profile?.audience.female ?? null} suffix="%" max={100} step={0.1} onChange={value => onAudience({ female: value })} />
+      <Numeric label={`${creator.market} share`} value={profile?.audience.homeShare ?? null} suffix="%" max={100} step={0.1} hint={audienceHint(profile, 'home')} onChange={value => onAudience({ homeShare: value })} />
+      <Numeric label="Age 25+" value={profile?.audience.age25 ?? null} suffix="%" max={100} step={0.1} hint={audienceHint(profile, 'age')} onChange={value => onAudience({ age25: value })} />
+      <Numeric label="Female" value={profile?.audience.female ?? null} suffix="%" max={100} step={0.1} hint={audienceHint(profile, 'gender')} onChange={value => onAudience({ female: value })} />
       <Numeric label="Male" value={profile?.audience.male ?? null} suffix="%" max={100} step={0.1} onChange={value => onAudience({ male: value })} />
       <Numeric label="Other" value={profile?.audience.other ?? null} suffix="%" max={100} step={0.1} onChange={value => onAudience({ other: value })} />
     </div>
@@ -181,6 +214,7 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
   const [contextMarket, setContextMarket] = useState<ContextMarket>('all');
   const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
   const [detail, setDetail] = useState<string | null>(null);
+  const [audienceOpen, setAudienceOpen] = useState<string | null>(null);
   const [snapshotName, setSnapshotName] = useState('');
   const [snapshotDialog, setSnapshotDialog] = useState(false);
   const [pending, setPending] = useState<Creator[] | null>(null);
@@ -238,7 +272,22 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
     update(s => ({ ...s, creators: s.creators.map(x => x.id === id ? { ...x, profiles: x.profiles.map(profile => profile.platform === platform ? { ...profile, ...patch } : profile) } : x) }));
   }
   function patchAudience(id: string, platform: string, patch: Partial<Audience>) {
-    update(s => ({ ...s, creators: s.creators.map(x => x.id === id ? { ...x, profiles: x.profiles.map(profile => profile.platform === platform ? { ...profile, audience: { ...profile.audience, ...patch } } : profile) } : x) }));
+    update(s => ({ ...s, creators: s.creators.map(x => x.id === id ? { ...x, profiles: x.profiles.map(profile => {
+      if (profile.platform !== platform) return profile;
+      const audience = { ...profile.audience, ...patch };
+      const detail = { ...profile.detail };
+      if ('homeShare' in patch) {
+        detail.homeSource = audience.homeShare == null ? '' : 'creator';
+        detail.countrySource = detail.homeSource;
+        detail.countries = audience.homeShare == null ? [] : [{ label: x.market, pct: audience.homeShare }];
+      }
+      if ('age25' in patch) {
+        detail.ageSource = audience.age25 == null ? '' : 'creator';
+        if (detail.ageSource === 'creator') detail.ageBands = [];
+      }
+      if ('female' in patch || 'male' in patch || 'other' in patch) detail.genderSource = audience.female == null && audience.male == null && audience.other == null ? '' : 'creator';
+      return { ...profile, audience, detail };
+    }) } : x) }));
   }
   function selectPackage(id: string, index: number) { creator(id, { selected: index, viewsOverride: null }); }
   async function save(next = state) {
@@ -350,14 +399,16 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
             </TableRow></TableHeader><TableBody>{rows.map((x, i) => {
               const d = decision(x, c);
               const stronger = strongerPlatform(x);
-              return <TableRow key={x.id} className={x.included ? 'selected-row' : ''} data-market={x.market} data-stronger={stronger ?? 'none'}>
-                <TableCell className="sticky-creator"><div className="creator-identity"><Checkbox aria-label={`Shortlist ${x.name}`} checked={x.included} onCheckedChange={v => creator(x.id, { included: v === true })} /><div className="creator-copy"><button type="button" className="creator-name" title={x.name} onClick={() => setDetail(x.id)}><span className={`creator-avatar tone-${i % 4}`}>{initials(x.name)}</span><strong>{x.name}</strong></button><span className="handle-row">{viewPlatforms.map(platform => { const profile = x.profiles.find(item => item.platform === platform); const handle = profile?.handle || (x.platform === platform ? x.handle : ''); return handle ? <HandleLink key={platform} platform={platform} handle={handle} url={profile?.url ?? ''} /> : null; })}</span>{x.status && <small className="cell-note" title={x.status}>{x.status}</small>}</div></div></TableCell>
+              const instagram = x.profiles.find(item => item.platform === 'Instagram');
+              const credibility = instagram?.detail.credibility;
+              return <Fragment key={x.id}><TableRow className={x.included ? 'selected-row' : ''} data-market={x.market} data-stronger={stronger ?? 'none'}>
+                <TableCell className="sticky-creator"><div className="creator-identity"><Checkbox aria-label={`Shortlist ${x.name}`} checked={x.included} onCheckedChange={v => creator(x.id, { included: v === true })} /><div className="creator-copy"><button type="button" className="creator-name" title={x.name} onClick={() => setDetail(x.id)}><CreatorFace creator={x} tone={i % 4} /><strong>{x.name}</strong>{credibility != null && <span className={`cred-pill ${credibility < 70 ? 'bad' : credibility < 85 ? 'warn' : 'ok'}`} title={`Instagram audience credibility ${n(credibility, 1)}% from the API. This is not a demographic.`}>{n(credibility, 0)}</span>}</button><span className="handle-row">{viewPlatforms.map(platform => { const profile = x.profiles.find(item => item.platform === platform); const handle = profile?.handle || (x.platform === platform ? x.handle : ''); return handle ? <HandleLink key={platform} platform={platform} handle={handle} url={profile?.url ?? ''} /> : null; })}</span>{x.status && <small className="cell-note" title={x.status}>{x.status}</small>}</div></div></TableCell>
                 <TableCell className="market-cell" title={x.market}><span className={`market-pill market-${x.market === 'North Macedonia' ? 'mk' : x.market.toLowerCase()}`}>{marketLabel(x.market)}</span></TableCell>
                 {viewPlatforms.flatMap(platform => metrics.map(metric => <MetricCell key={`${x.id}-${platform}-${metric.key}`} creator={x} platform={platform} field={metric.key} compact={platformView === 'Both'} win={platformView === 'Both' && stronger === platform} />))}
                 <TableCell className="num"><span className="fit-number">{n(fitScore(x, c))}</span></TableCell>
                 <TableCell><span className={`pill ${d === 'Conditional test' ? 'green' : d === 'Negotiate' ? 'amber' : 'neutral'}`} title={d}>{d}</span></TableCell>
-                <TableCell className="detail-col"><button type="button" className="btn icon" aria-label={`Review ${x.name}`} onClick={() => setDetail(x.id)}><ArrowUpRight size={18} /></button></TableCell>
-              </TableRow>;
+                <TableCell className="detail-col"><button type="button" className="btn icon" aria-expanded={audienceOpen === x.id} aria-label={audienceOpen === x.id ? `Hide ${x.name} audience` : `Show ${x.name} audience`} onClick={() => setAudienceOpen(audienceOpen === x.id ? null : x.id)}>{audienceOpen === x.id ? <ChevronDown size={18} /> : <ChevronRight size={18} />}</button></TableCell>
+              </TableRow>{audienceOpen === x.id && <TableRow className="insight-row"><TableCell colSpan={2 + metrics.length * viewPlatforms.length + 3}><CreatorInsight creator={x} onEdit={() => setDetail(x.id)} /></TableCell></TableRow>}</Fragment>;
             })}</TableBody></Table>
 {!rows.length && <div className="empty">No creators match this view. Try another filter.</div>}<div className="table-foot"><span>Showing {rows.length} of {state.creators.length}. {platformView === 'Both' ? 'Highlighted platform has the lower net CPM, or the higher median when net CPM cannot be compared.' : `${platformView} only.`}</span><span>{hiddenShortlist ? `${hiddenShortlist} shortlisted creator${hiddenShortlist === 1 ? ' is' : 's are'} outside this market. Campaign totals still include them.` : 'Quoted net, gross and tax-on-top fees are not directly comparable.'}</span></div></section>
             <aside className="insights"><div className="insight-heading"><span className="small-icon"><Info size={18} /></span><h2>Before you commit</h2></div><p className="muted">Evidence-led notes from the shortlist.</p><article className="insight"><span className="index">01</span><div><h3>Start with the story</h3><p>Holiday.stop’s flight delay is a relevant creative starting point in Poland. Confirm home-market audience share and package scope before treating it as a claim story.</p><button type="button" className="btn ghost" onClick={() => setDetail(state.creators.find(x => x.handle === '@holiday.stop')?.id ?? state.creators[0]?.id ?? null)}>Review evidence <ChevronRight size={15} /></button></div></article><article className="insight"><span className="index">02</span><div><h3>Keep the platforms apart</h3><p>A creator can be stronger on Instagram than on TikTok. Median, fee, engagement and audience stay on the platform they were measured for.</p></div></article><article className="insight"><span className="index">03</span><div><h3>Let the economics decide</h3><p>Net CPM is withheld unless the 1× fee is net. Gross and tax-on-top quotes stay visible in the detail, and they are not treated as the same price.</p><button type="button" className="btn ghost" onClick={() => setTab('campaign')}>Edit assumptions <ChevronRight size={15} /></button></div></article><div className="evidence-note">Creator-supplied and enriched stats · not independently verified. Recommendations use transparent rules, not a trained prediction model.</div></aside></div></TabsContent>
@@ -368,7 +419,7 @@ export default function CreatorLab({ initialData }: { initialData: State }) {
       </fieldset><footer className="footer"><span><img className="footer-brand-logo" src="/winglex-logo.svg" alt="Winglex" width={105} height={24} /><span>Creator Lab</span></span><span>Source-backed decisions. Editable assumptions.</span></footer>
     </main>
     <input type="file" accept=".json,application/json" ref={backupRef} hidden onChange={async e => { const file = e.target.files?.[0]; if (!file) return; try { if (file.size > 2000000) throw new Error('Backup must be smaller than 2 MB.'); setPendingRestore(StateSchema.parse(JSON.parse(await file.text()))); } catch { setError('This file is not a valid Winglex workspace backup (maximum 2 MB).'); } finally { e.target.value = ''; } }} />
-    <Dialog open={!!pendingRestore} onOpenChange={v => !v && setPendingRestore(null)}><DialogContent><DialogHeader><DialogTitle>Restore workspace backup?</DialogTitle><DialogDescription>This replaces the current campaign, creators, assumptions, results and saved scenarios. Older backups are upgraded to per-platform profiles. A creator who already has a market keeps it. A saved creator with no market becomes Poland. Export the current workspace first if you want to retain it.</DialogDescription></DialogHeader><button type="button" className="btn primary" onClick={() => { if (pendingRestore) { setState(pendingRestore); setDirty(true); setNotice('Backup restored. Review it and save changes to store it in Supabase.'); setPendingRestore(null); } }}>Restore backup</button></DialogContent></Dialog>
+    <Dialog open={!!pendingRestore} onOpenChange={v => !v && setPendingRestore(null)}><DialogContent><DialogHeader><DialogTitle>Restore workspace backup?</DialogTitle><DialogDescription>This replaces the current campaign, creators, assumptions, results and saved scenarios. Older backups are upgraded to per-platform profiles. A creator who already has a market keeps it. A saved creator with no market is matched to the shortlist by handle, and otherwise becomes Poland. Export the current workspace first if you want to retain it.</DialogDescription></DialogHeader><button type="button" className="btn primary" onClick={() => { if (pendingRestore) { setState(pendingRestore); setDirty(true); setNotice('Backup restored. Review it and save changes to store it in Supabase.'); setPendingRestore(null); } }}>Restore backup</button></DialogContent></Dialog>
     <Sheet open={!!cr} onOpenChange={v => !v && setDetail(null)}><SheetContent className="creator-sheet">{cr && <><SheetHeader><span className="eyebrow">CREATOR REVIEW</span><SheetTitle className="sheet-name">{cr.name}</SheetTitle><SheetDescription>{cr.market} · {cr.platform} primary · {cr.status || 'No status'}</SheetDescription><span className="handle-row">{PLATFORMS.map(platform => { const profile = cr.profiles.find(item => item.platform === platform); return profile?.handle ? <HandleLink key={platform} platform={platform} handle={profile.handle} url={profile.url} /> : null; })}</span></SheetHeader><fieldset disabled={saving} className="sheet-body"><div className="review-callout"><h3>Initial assessment</h3><p>{cr.rationale}</p><small>Editorial assessment from the supplied tracker; review before use.</small></div><h3>Evidence to resolve</h3><TextField label="Open questions" value={cr.gaps} onChange={v => creator(cr.id, { gaps: v })} area /><div className="two-fields"><label className="field"><span>Market</span><Choice label="Creator market" value={cr.market} onChange={v => creator(cr.id, { market: v as Market })} options={MARKETS.map(market => [market, market])} /></label><label className="field"><span>Primary platform</span><Choice label="Primary platform" value={PLATFORMS.includes(cr.platform as PlatformName) ? cr.platform : 'TikTok'} onChange={v => creator(cr.id, { platform: v })} options={PLATFORMS.map(platform => [platform, platform])} /></label></div><TextField label="Status" value={cr.status} onChange={v => creator(cr.id, { status: v })} /><TextField label="Personal story" value={cr.story} onChange={v => creator(cr.id, { story: v })} />
       {PLATFORMS.map(platform => <PlatformFields key={platform} creator={cr} platform={platform} onProfile={patch => patchProfile(cr.id, platform, patch)} onAudience={patch => patchAudience(cr.id, platform, patch)} onSelect={index => selectPackage(cr.id, index)} />)}
       {cr.profiles.filter(profile => !(PLATFORMS as readonly string[]).includes(profile.platform)).map(profile => <section key={profile.platform} className="platform-block"><div className="mini-heading">{profile.platform}</div><TextField label="Handle" value={profile.handle} onChange={v => patchProfile(cr.id, profile.platform, { handle: v })} /><TextField label="Profile URL" value={profile.url} onChange={v => patchProfile(cr.id, profile.platform, { url: v })} /></section>)}

@@ -1,6 +1,6 @@
 import 'server-only';
-import { importCreators, defaultCampaign, type State } from './model';
-import { shortlistCsv } from './shortlist-csv';
+import { seedCreatorRecords } from './catalog.ts';
+import { CreatorSchema, defaultCampaign, profileFromCatalog, type State } from './model';
 
 const editorial: Record<string, { rationale: string; story?: string }> = {
   '@holiday.stop': {
@@ -33,7 +33,10 @@ const editorial: Record<string, { rationale: string; story?: string }> = {
 };
 
 export function initialState(): State {
-  const creators = importCreators(shortlistCsv, 'shortlist_summary.csv · 17 November 2026');
+  const creators = seedCreatorRecords().map(record => CreatorSchema.parse({
+    ...record,
+    profiles: record.profiles.map(item => profileFromCatalog(item.platform, item.mapped)),
+  }));
   for (const creator of creators) {
     const note = editorial[creator.handle];
     if (!note) continue;

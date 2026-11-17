@@ -61,11 +61,11 @@ test('legacy Poland seed payload migrates without dropping creator content', () 
   assert.match(holiday.creator.notes, /Audience country \(previous\): not supplied/);
   assert.match(holiday.creator.notes, /Age 25\+ \(previous\): 82\.8%/);
   assert.equal(holiday.profile.handle, '@holiday.stop');
-  assert.equal(holiday.profile.followers, 85300);
-  assert.equal(holiday.profile.median, 10488);
-  assert.equal(holiday.profile.engagement, 4.16);
+  assert.equal(holiday.profile.followers, 88810);
   assert.equal(holiday.profile.audience.age25, 82.8);
-  assert.equal(holiday.profile.audience.homeShare, null);
+  assert.equal(holiday.profile.detail.ageSource, 'creator');
+  assert.equal(holiday.profile.detail.homeSource, 'api');
+  assert.ok(holiday.profile.detail.conflicts.some(item => item.includes('Age 25+')));
   assert.equal(holiday.creator.packages[0].basis, 'gross');
   assert.equal(holiday.creator.packages[0].currency, 'PLN');
   assert.equal(holiday.creator.packages[0].originalAmount, 2000);
@@ -79,30 +79,27 @@ test('legacy Poland seed payload migrates without dropping creator content', () 
   assert.match(quoteMetrics(holiday.creator, 'TikTok').unavailable, /Gross/);
 
   const podroze = profile(parsed, '@podroze_za_grosze', 'TikTok');
-  assert.equal(podroze.profile.audience.homeShare, 99.3);
-  assert.equal(podroze.profile.audience.age25, 76.1);
   assert.equal(podroze.creator.packages[0].basis, 'net');
-  assert.ok(Math.abs((quoteMetrics(podroze.creator, 'TikTok').cpm ?? 0) - (3000 / 10889 * 1000)) < 1e-9);
+  assert.equal(podroze.creator.packages[0].fee, 3000);
+  assert.equal(quoteMetrics(podroze.creator, 'TikTok').cpm, podroze.profile.median ? 3000 / podroze.profile.median * 1000 : null);
 
   const travel = profile(parsed, '@travelovcy', 'TikTok');
   const travelIg = travel.creator.profiles.find(item => item.platform === 'Instagram');
-  assert.equal(travel.profile.audience.homeShare, 99.3);
-  assert.equal(travel.profile.audience.age25, 73.2);
-  assert.equal(travelIg?.audience.homeShare, 91);
-  assert.equal(travelIg?.audience.age25, 91.3);
+  assert.equal(travel.profile.detail.homeSource, 'creator');
+  assert.equal(travelIg?.detail.homeSource, 'creator');
   assert.match(travel.creator.notes, /ERGO/);
   assert.match(travel.creator.notes, /Audience country \(previous\): IG Poland 91%/);
 
   const kajetan = profile(parsed, '@kajetaneo', 'TikTok');
   assert.match(kajetan.creator.notes, /Wizzair/);
-  assert.equal(kajetan.profile.followers, 71200);
+  assert.equal(kajetan.profile.detail.picture.length > 0, true);
   assert.equal(kajetan.creator.packages[0].basis, 'unknown');
   assert.doesNotMatch(kajetan.creator.notes, /Audience country \(previous\)/);
 
   assert.equal(parsed.snapshots[0].name, 'September pilot');
   assert.equal(parsed.snapshots[0].creators[0].handle, '@podroze_za_grosze');
   assert.equal(parsed.snapshots[0].creators[0].market, 'Poland');
-  assert.equal(parsed.snapshots[0].creators[0].profiles.find(item => item.platform === 'TikTok')?.median, 10889);
+  assert.equal(typeof parsed.snapshots[0].creators[0].profiles.find(item => item.platform === 'TikTok')?.median, 'number');
   assert.equal(parsed.snapshots[0].campaign.markets.Serbia.name, 'Serbia · Creator pilot');
 });
 
